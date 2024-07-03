@@ -238,7 +238,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n"
                                         "Silakan coba lagi.")
-                await context.bot.send_message(chat_id=user.id, text="/bermain")
+                await main_command(update, context)  # Kembali ke daftar /bermain
             else:
                 if khodam_list:
                     # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
