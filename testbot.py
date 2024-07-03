@@ -74,9 +74,10 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     user_id = query.from_user.id
 
+    
     if query.data == 'check_khodam':
         user_settings[user_id] = 'waiting_for_khodam_name'
-        await update.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
+        await query.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
     elif query.data == 'check_partner':
         # Implementasi fungsi Cek Jodoh jika ada
         await query.edit_message_text('Fungsi Cek Jodoh belum diimplementasikan.')
