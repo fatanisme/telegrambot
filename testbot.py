@@ -172,7 +172,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
-    user_input = update.message.text
+    user_input = update.message.text    
     partner_id = user_pairs.get(user.id)
 
     if partner_id:
@@ -205,6 +205,62 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif update.message.forward_from or update.message.forward_from_chat:
             await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
             save_chat_to_mongodb(str(user.id), str(partner_id), "forward", {"from_chat_id": update.message.chat_id, "message_id": update.message.message_id})
+    elif user.id in user_settings:
+        if user_settings[user.id] == 'waiting_for_age':
+            if user_input.isdigit():
+                save_user_to_mongodb(user.id, age=user_input)
+                await update.message.reply_text(f"Umur Anda telah diperbarui menjadi {user_input}.")
+                await settings(update, context)  # Kembali ke daftar pengaturan
+            else:
+                await update.message.reply_text("Harap masukkan umur yang valid.")
+        elif user_settings[user.id] == 'waiting_for_gender':
+            if user_input.lower() in ['pria', 'wanita']:
+                save_user_to_mongodb(user.id, gender=user_input.capitalize())
+                await update.message.reply_text(f"Jenis kelamin Anda telah diperbarui menjadi {user_input}.")
+                await settings(update, context)  # Kembali ke daftar pengaturan
+            else:
+                await update.message.reply_text("Harap pilih jenis kelamin yang valid: 'Pria' atau 'Wanita'.")
+        elif user_settings[user.id] == 'waiting_for_city':
+            save_user_to_mongodb(user.id, city=user_input)
+            await update.message.reply_text(f"Kota/Kabupaten Anda telah diperbarui menjadi {user_input}.")
+            await settings(update, context)  # Kembali ke daftar pengaturan
+        elif user_settings[user.id] == 'waiting_for_khodam_name':
+            # Mengambil Khodam secara random dari collection
+            khodam_list = list(khodam_collection.find())
+            if random.random() < 0.5:
+                message = await update.message.reply_text("Memilih Khodam...")
+                # Menampilkan rolling list selama 4 detik
+                num_rolls = 10  # Total list Khodam yang ditampilkan
+                for i in range(num_rolls):
+                    random_khodam = random.choice(khodam_list)
+                    khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
+                    await message.edit_text(f"{khodam_name}  (Roll {i+1})")
+
+                await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n Silakan coba lagi.")
+            else:
+                if khodam_list:
+                    # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
+                    message = await update.message.reply_text("Memilih Khodam...")
+
+                    # Menampilkan rolling list selama 4 detik
+                    num_rolls = 10  # Total list Khodam yang ditampilkan
+                    for i in range(num_rolls):
+                        random_khodam = random.choice(khodam_list)
+                        khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
+                        await message.edit_text(f"{khodam_name}  (Roll {i+1})")
+
+                    # Pilih Khodam secara final
+                    final_khodam = random.choice(khodam_list)
+                    final_khodam_name = final_khodam.get('name', 'Khodam tidak diketahui')
+
+                    # Edit pesan dengan hasil akhir
+                    await message.edit_text(f"Halo {user_input}, Khodam Anda adalah: {final_khodam_name}")
+
+                else:
+                    await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
+
+        # Menghapus state
+        user_settings.pop(user.id, None)
     
     else:
         await update.message.reply_text(
@@ -296,67 +352,6 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
 
-async def handle_user_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.message.from_user.id
-    user_input = update.message.text
-
-    if user_id in user_settings:
-        if user_settings[user_id] == 'waiting_for_age':
-            if user_input.isdigit():
-                save_user_to_mongodb(user_id, age=user_input)
-                await update.message.reply_text(f"Umur Anda telah diperbarui menjadi {user_input}.")
-                await settings(update, context)  # Kembali ke daftar pengaturan
-            else:
-                await update.message.reply_text("Harap masukkan umur yang valid.")
-        elif user_settings[user_id] == 'waiting_for_gender':
-            if user_input.lower() in ['pria', 'wanita']:
-                save_user_to_mongodb(user_id, gender=user_input.capitalize())
-                await update.message.reply_text(f"Jenis kelamin Anda telah diperbarui menjadi {user_input}.")
-                await settings(update, context)  # Kembali ke daftar pengaturan
-            else:
-                await update.message.reply_text("Harap pilih jenis kelamin yang valid: 'Pria' atau 'Wanita'.")
-        elif user_settings[user_id] == 'waiting_for_city':
-            save_user_to_mongodb(user_id, city=user_input)
-            await update.message.reply_text(f"Kota/Kabupaten Anda telah diperbarui menjadi {user_input}.")
-            await settings(update, context)  # Kembali ke daftar pengaturan
-        elif user_settings[user_id] == 'waiting_for_khodam_name':
-            # Mengambil Khodam secara random dari collection
-            khodam_list = list(khodam_collection.find())
-            if random.random() < 0.5:
-                message = await update.message.reply_text("Memilih Khodam...")
-                # Menampilkan rolling list selama 4 detik
-                num_rolls = 10  # Total list Khodam yang ditampilkan
-                for i in range(num_rolls):
-                    random_khodam = random.choice(khodam_list)
-                    khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
-                    await message.edit_text(f"{khodam_name}  (Roll {i+1})")
-
-                await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n Silakan coba lagi.")
-            else:
-                if khodam_list:
-                    # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
-                    message = await update.message.reply_text("Memilih Khodam...")
-
-                    # Menampilkan rolling list selama 4 detik
-                    num_rolls = 10  # Total list Khodam yang ditampilkan
-                    for i in range(num_rolls):
-                        random_khodam = random.choice(khodam_list)
-                        khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
-                        await message.edit_text(f"{khodam_name}  (Roll {i+1})")
-
-                    # Pilih Khodam secara final
-                    final_khodam = random.choice(khodam_list)
-                    final_khodam_name = final_khodam.get('name', 'Khodam tidak diketahui')
-
-                    # Edit pesan dengan hasil akhir
-                    await message.edit_text(f"Halo {user_input}, Khodam Anda adalah: {final_khodam_name}")
-
-                else:
-                    await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
-
-    # Menghapus state
-    user_settings.pop(user_id, None)
-
 async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     user = users_collection.find_one({"user_id": user_id})
@@ -398,7 +393,6 @@ def main():
 
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_user_input))
 
     application.run_polling()
 
