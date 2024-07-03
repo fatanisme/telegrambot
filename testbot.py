@@ -236,7 +236,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
                     await message.edit_text(f"{khodam_name}  (Roll {i+1})")
 
-                await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n Silakan coba lagi.")
+                await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n"
+                                        "Silakan coba lagi.")
+                await context.bot.send_message(chat_id=user.id, text="/bermain")
             else:
                 if khodam_list:
                     # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
