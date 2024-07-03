@@ -73,7 +73,6 @@ async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     user_id = query.from_user.id
-
     
     if query.data == 'check_khodam':
         user_settings[user_id] = 'waiting_for_khodam_name'
@@ -399,7 +398,7 @@ def main():
 
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_input))
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_user_input))
 
     application.run_polling()
 
