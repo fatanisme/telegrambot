@@ -63,8 +63,8 @@ user_settings = {}
 
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        [InlineKeyboardButton("Cek Khodam", callback_data='check_khodam')],
-        [InlineKeyboardButton("Cek Jodoh", callback_data='check_partner')],
+        [InlineKeyboardButton("👽👽👽 CEK KHODAM 👽👽👽", callback_data='check_khodam')],
+        [InlineKeyboardButton("💗💗💗 CEK JODOH 💗💗💗", callback_data='check_jodoh')],
         [InlineKeyboardButton("Batal", callback_data='cancel')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -77,9 +77,16 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     if query.data == 'check_khodam':
         user_settings[user_id] = 'waiting_for_khodam_name'
         await query.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
-    elif query.data == 'check_partner':
-        # Implementasi fungsi Cek Jodoh jika ada
-        await query.edit_message_text('Fungsi Cek Jodoh belum diimplementasikan.')
+    elif query.data == 'check_jodoh':
+        user_settings[user_id] = 'waiting_for_khodam_name'
+
+        keyboard = [
+                [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
+                [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
+        print({reply_markup})
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
@@ -236,8 +243,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     khodam_name = random_khodam.get('name', 'Khodam tidak diketahui')
                     await message.edit_text(f"{khodam_name}  (Roll {i+1})")
 
-                await message.edit_text("Maaf, kali ini Anda tidak mendapatkan Khodam.\n"
-                                        "Silakan coba lagi.")
+                await message.edit_text("Khodam Anda sepertinya sedang berlibur dan tidak ingin diganggu. Mungkin dia sedang merenungkan betapa sulitnya hidup dengan ‘keistimewaan’ Anda. Cobalah lagi nanti, mungkin dia kembali!\n"
+                                        "Just Kidding !!! Yuk coba lagii 😊")
                 await main_command(update, context)  # Kembali ke daftar /bermain
             else:
                 if khodam_list:
@@ -260,10 +267,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
-
+        elif user_settings[user.id] == 'waiting_for_couple':
+            save_user_to_mongodb(user.id, gender=user_input.capitalize())
+            
         # Menghapus state
         user_settings.pop(user.id, None)
-    
+
     else:
         await update.message.reply_text(
             'Anda tidak sedang dalam chat dengan siapapun.\n\n'
@@ -389,7 +398,7 @@ def main():
     application.add_handler(CommandHandler("settings", settings))
     
     application.add_handler(CommandHandler("bermain", main_command))  # Tambahkan baris ini
-    application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_partner|cancel)$'))
+    application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_jodoh|cancel)$'))
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
