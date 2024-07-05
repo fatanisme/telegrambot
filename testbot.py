@@ -12,6 +12,7 @@ db = mongo_client['caripacar_db']
 users_collection = db['users']
 chats_collection = db['chats']
 khodam_collection = db['khodam']
+jodoh_collection = db['khodam']
 
 # Fungsi untuk menyimpan chat ke MongoDB
 def save_chat_to_mongodb(user_id, partner_id, message_type, message):
@@ -80,14 +81,13 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         user_settings[user_id] = 'waiting_for_khodam_name'
         await query.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
     elif query.data == 'check_jodoh':
-        user_settings[user_id] = 'waiting_for_khodam_name'
+        user_settings[user_id] = 'waiting_for_couple'
         keyboard = [
                 [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
                 [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
-        print({reply_markup})
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
@@ -235,6 +235,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif user_settings[user.id] == 'waiting_for_khodam_name':
             # Mengambil Khodam secara random dari collection
             khodam_list = list(khodam_collection.find())
+            
             if random.random() < 0.5:
                 message = await update.message.reply_text("Memilih Khodam...")
                 # Menampilkan rolling list selama 4 detik
@@ -269,8 +270,38 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
         elif user_settings[user.id] == 'waiting_for_couple':
-            save_user_to_mongodb(user.id, gender=user_input.capitalize())
+            query = update.callback_query
+            print(query.data)
+            save_user_to_mongodb(user.id, gender=query.data.capitalize())
             
+            if query.data == 'pria':
+                jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
+            
+            elif query.data == 'wanita':
+                jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
+                
+            if jodoh_list:
+                
+                # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
+                message = await update.message.reply_text("Memilih Jodoh...")
+
+                # Menampilkan rolling list selama 4 detik
+                num_rolls = 10  # Total list Khodam yang ditampilkan
+                for i in range(num_rolls):
+                    random_jodoh = random.choice(jodoh_list)
+                    jodoh_name = random_jodoh.get('name', 'Jodoh tidak diketahui')
+                    await message.edit_text(f"{jodoh_name}  (Roll {i+1})")
+
+                # Pilih Khodam secara final
+                final_jodoh = random.choice(jodoh_list)
+                final_jodoh_name = final_jodoh.get('name', 'Jodoh tidak diketahui')
+
+                # Edit pesan dengan hasil akhir
+                await message.edit_text(f"Halo, Jodoh Anda adalah: {final_jodoh_name}")
+
+            else:
+                await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
+                
         # Menghapus state
         user_settings.pop(user.id, None)
 
