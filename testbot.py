@@ -430,12 +430,12 @@ def main():
     
     application.add_handler(CommandHandler("bermain", main_command))  # Tambahkan baris ini
     application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_jodoh|cancel)$'))
-    application.add_handler(CallbackQueryHandler(handle_message, pattern='^(pria|wanita)$'))
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    application.add_handler(CallbackQueryHandler(handle_message, pattern='^(pria|wanita)$'))
 
     application.run_polling()
 
