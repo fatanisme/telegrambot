@@ -183,7 +183,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_input = update.message.text    
     partner_id = user_pairs.get(user.id)
     query = update.callback_query    
-
+    
+    print(query.data)
+    print(user_settings[user.id])
+    
     if partner_id:
         if update.message.text:
             await context.bot.send_message(chat_id=partner_id, text=update.message.text)
