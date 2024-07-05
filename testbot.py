@@ -271,15 +271,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
         elif user_settings[user.id] == 'waiting_for_pria' or user_settings[user.id] == 'waiting_for_wanita':
-
-            save_user_to_mongodb(user.id, gender=query.data.capitalize())
-            query = update.callback_query    
                             
             if user_settings[user.id] == 'waiting_for_pria':
+                user_gender = "pria"
                 jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
-            
+                
             elif user_settings[user.id] == 'waiting_for_wanita':
-                jodoh_list = list(jodoh_collection.find({'gender': 'pria'}))
+                user_gender = "wanita"
+                jodoh_list = list(jodoh_collection.find({'gender': 'Pria'}))
+            
             if jodoh_list:
                 
                 # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
@@ -298,10 +298,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 # Edit pesan dengan hasil akhir
                 await message.edit_text(f"Halo, Jodoh Anda adalah: {final_jodoh_name}")
-
+                save_user_to_mongodb(user.id, gender=user_gender.capitalize())
             else:
-                await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
-                
+                await update.message.reply_text("Maaf, tidak ada Jodoh yang tersedia saat ini.")
+                            
         # Menghapus state
         user_settings.pop(user.id, None)
 
