@@ -87,7 +87,8 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
                 [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
+        await update.message.reply_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
+        
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
