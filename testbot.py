@@ -274,11 +274,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                             
             if user_settings[user.id] == 'waiting_for_pria':
                 user_gender = "pria"
-                jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
+                jodoh_list = list(jodoh_collection.find({'gender': 'wanita'}))
                 
             elif user_settings[user.id] == 'waiting_for_wanita':
                 user_gender = "wanita"
-                jodoh_list = list(jodoh_collection.find({'gender': 'Pria'}))
+                jodoh_list = list(jodoh_collection.find({'gender': 'pria'}))
             
             if jodoh_list:
                 
