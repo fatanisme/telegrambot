@@ -270,20 +270,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
-        elif user_settings[user.id] == 'waiting_for_couple':
+        elif user_settings[user.id] == 'waiting_for_pria' or user_settings[user.id] == 'waiting_for_wanita':
 
             save_user_to_mongodb(user.id, gender=query.data.capitalize())
             query = update.callback_query    
-            
-            print(f"{query.data}")
-            print(f"{user_settings[user.id]}")        
-                
-            if query.data == 'pria':
+                            
+            if user_settings[user.id] == 'waiting_for_pria':
                 jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
             
-            elif query.data == 'wanita':
-                jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
-                
+            elif user_settings[user.id] == 'waiting_for_wanita':
+                jodoh_list = list(jodoh_collection.find({'gender': 'pria'}))
             if jodoh_list:
                 
                 # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
@@ -399,6 +395,17 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
 
+async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'pria':
+        user_settings[user_id] = 'waiting_for_pria'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+    elif query.data == 'wanita':
+        user_settings[user_id] = 'waiting_for_wanita'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+
 async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     user = users_collection.find_one({"user_id": user_id})
@@ -438,9 +445,9 @@ def main():
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
+    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
-    application.add_handler(CallbackQueryHandler(handle_message, pattern='^(pria|wanita)$'))
 
     application.run_polling()
 
