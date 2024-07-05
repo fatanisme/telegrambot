@@ -87,8 +87,7 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
                 [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
-        
+        await query.edit_message_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
@@ -272,7 +271,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
         elif user_settings[user.id] == 'waiting_for_couple':
             query = update.callback_query
-            print(query.data)
             save_user_to_mongodb(user.id, gender=query.data.capitalize())
             
             if query.data == 'pria':
@@ -432,6 +430,7 @@ def main():
     
     application.add_handler(CommandHandler("bermain", main_command))  # Tambahkan baris ini
     application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_jodoh|cancel)$'))
+    application.add_handler(CallbackQueryHandler(handle_message, pattern='^(pria|wanita)$'))
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
