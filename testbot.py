@@ -297,7 +297,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 final_jodoh_name = final_jodoh.get('name', 'Jodoh tidak diketahui')
 
                 # Edit pesan dengan hasil akhir
-                await message.edit_text(f"Halo, Jodoh Anda adalah: {final_jodoh_name}")
+                await message.edit_text(f"Halo{user_input}, Jodoh Anda adalah: {final_jodoh_name}")
                 save_user_to_mongodb(user.id, gender=user_gender.capitalize())
             else:
                 await update.message.reply_text("Maaf, tidak ada Jodoh yang tersedia saat ini.")
