@@ -1,6 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
+from bottokens import HELLOTEMAN_BOT_TOKEN
 from datetime import datetime
 import random
 
@@ -371,7 +372,7 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main():
-    application = ApplicationBuilder().token("7444853087:AAHzwHfJzvb5XmqNeMTPKNeW51LFpt1EFmk").build()
+    application = ApplicationBuilder().token(HELLOTEMAN_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))

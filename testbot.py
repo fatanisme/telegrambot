@@ -1,6 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
+from bottokens import HELLOTEMAN_BOT_TOKEN
+from bottokens import CARIPACAR_BOT_TOKEN
 from datetime import datetime
 import random
 
@@ -79,13 +81,12 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
     elif query.data == 'check_jodoh':
         user_settings[user_id] = 'waiting_for_khodam_name'
-
         keyboard = [
                 [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
                 [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
+        await query.edit_message_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
         print({reply_markup})
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
