@@ -184,8 +184,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     partner_id = user_pairs.get(user.id)
     query = update.callback_query    
     
-    print(query.data)
-    print(user_settings[user.id])
+    print(f"{query.data}")
+    print(f"{user_settings[user.id]}")
     
     if partner_id:
         if update.message.text:
