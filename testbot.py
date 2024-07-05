@@ -12,7 +12,7 @@ db = mongo_client['caripacar_db']
 users_collection = db['users']
 chats_collection = db['chats']
 khodam_collection = db['khodam']
-jodoh_collection = db['khodam']
+jodoh_collection = db['couples']
 
 # Fungsi untuk menyimpan chat ke MongoDB
 def save_chat_to_mongodb(user_id, partner_id, message_type, message):
