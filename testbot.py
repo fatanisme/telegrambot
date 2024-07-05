@@ -182,10 +182,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user = update.message.from_user
     user_input = update.message.text    
     partner_id = user_pairs.get(user.id)
-    query = update.callback_query    
-    
-    print(f"{query.data}")
-    print(f"{user_settings[user.id]}")
+
     
     if partner_id:
         if update.message.text:
@@ -274,8 +271,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
         elif user_settings[user.id] == 'waiting_for_couple':
+
             save_user_to_mongodb(user.id, gender=query.data.capitalize())
+            query = update.callback_query    
             
+            print(f"{query.data}")
+            print(f"{user_settings[user.id]}")        
+                
             if query.data == 'pria':
                 jodoh_list = list(jodoh_collection.find({'gender': 'Wanita'}))
             
