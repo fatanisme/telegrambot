@@ -102,7 +102,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     start_message = (
         "Selamat datang di Anonymous Chat!\n\n"
         "Coba perintah berikut untuk memastikan bot berfungsi:\n"
-        "/khodam - Untuk mengecek khodam yang kamu miliki.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/join - Untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
         "/leave - Untuk keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
         "/help - Memulai bot dan menerima pesan sambutan.\n"
@@ -121,7 +121,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
-        "/khodam - Untuk mengecek khodam yang kamu miliki.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
         "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
         "/help - Memulai bot dan menerima pesan sambutan.\n"
