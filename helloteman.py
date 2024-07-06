@@ -2,13 +2,12 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
 from bottokens import HELLOTEMAN_BOT_TOKEN
-from bottokens import CARIPACAR_BOT_TOKEN
 from datetime import datetime
 import random
 
 # Inisialisasi koneksi ke MongoDB
 mongo_client = MongoClient('localhost', 27017)
-db = mongo_client['caripacar_db']
+db = mongo_client['helloteman_db']
 users_collection = db['users']
 chats_collection = db['chats']
 khodam_collection = db['khodam']
