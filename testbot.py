@@ -427,7 +427,7 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main():
-    application = ApplicationBuilder().token(HELLOTEMAN_BOT_TOKEN).build()
+    application = ApplicationBuilder().token(CARIPACAR_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
