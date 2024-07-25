@@ -34,15 +34,28 @@ def show_photos():
     # Menyusun data untuk ditampilkan
     photos_data = []
     for chat in chats:
-        for message in chat['messages']:
-            if message['message_type'] == 'photo':
-                sender_id = message['sender_id']
-                photo_id = message['photo'][-1]['file_id']  # Mengambil versi foto dengan resolusi tertinggi
-                photo_url = get_telegram_file_url(bot_token, photo_id)
+        for message in chat.get('messages', []):
+            if message.get('message_type') == 'photo':
+                sender_id = message.get('sender_id')
+                photos = message.get('photo', [])  # Menggunakan get() untuk menghindari KeyError
+                
+                if not photos:
+                    continue
+
+                # Mengambil versi foto dengan resolusi tertinggi
+                photo_id = photos[-1].get('file_id')
+                if not photo_id:
+                    continue
+
+                try:
+                    photo_url = get_telegram_file_url(bot_token, photo_id)
+                except Exception as e:
+                    photo_url = None
+                    print(f"Error fetching photo URL: {e}")
 
                 # Mengambil nama lengkap dari koleksi users
                 user = users_collection.find_one({ 'user_id': sender_id })
-                full_name = user['full_name'] if user else 'Unknown'
+                full_name = user.get('full_name', 'Unknown') if user else 'Unknown'
 
                 photos_data.append({
                     'sender_id': sender_id,
@@ -82,7 +95,13 @@ def show_photos():
             <tr>
                 <td>{{ photo.sender_id }}</td>
                 <td>{{ photo.full_name }}</td>
-                <td><img src="{{ photo.photo_url }}" alt="Photo" width="100"></td>
+                <td>
+                    {% if photo.photo_url %}
+                        <img src="{{ photo.photo_url }}" alt="Photo" width="100">
+                    {% else %}
+                        No Photo Available
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </table>
