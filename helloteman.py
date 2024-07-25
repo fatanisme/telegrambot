@@ -64,6 +64,19 @@ users = []
 user_settings = {}
 user_pairs = {}
 
+def load_user_pairs_from_mongodb():
+    global user_pairs
+    user_pairs = {}
+    
+    # Ambil data dari koleksi user_pairs
+    for document in user_pairs_collection.find():
+        user_id = document.get('user_id')
+        partner_id = document.get('partner_id')
+        if user_id and partner_id:
+            user_pairs[user_id] = partner_id
+            user_pairs[partner_id] = user_id
+load_user_pairs_from_mongodb()            
+
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("👽👽👽 CEK KHODAM 👽👽👽", callback_data='check_khodam')],
