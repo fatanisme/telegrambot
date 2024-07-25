@@ -142,7 +142,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if user.id not in [u.id for u in users]:
         users.append(user)
         await update.message.reply_text('Anda telah bergabung ke dalam pool chat random. Sedang mencari pasangan chat.')
-        await start_chat(update, context, user.id)
+        await start_chat(update, context)
     else:
         await update.message.reply_text('Anda sudah berada di dalam pool chat. Gunakan /leave terlebih dahulu untuk keluar dari obrolan.')
 
