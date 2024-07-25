@@ -340,7 +340,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
         )
 
-async def active_users(update: types.Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         data = pairs_collection.find_one({})
         
