@@ -12,6 +12,7 @@ users_collection = db['users']
 chats_collection = db['chats']
 khodam_collection = db['khodam']
 jodoh_collection = db['couples']
+pairs_collection = db["user_pairs"]
 
 # Fungsi untuk menyimpan chat ke MongoDB
 def save_chat_to_mongodb(user_id, partner_id, message_type, message):
@@ -62,6 +63,38 @@ def save_user_to_mongodb(user_id, **kwargs):
 users = []
 user_pairs = {}
 user_settings = {}
+
+
+def save_user_pairs_to_mongodb(user_pairs):
+    try:
+        pairs_collection.replace_one({}, {"user_pairs": user_pairs}, upsert=True)
+    except Exception as e:
+        print(f"Error saving user pairs to MongoDB: {e}")
+
+def load_user_pairs_from_mongodb():
+    global user_pairs
+    try:
+        data = pairs_collection.find_one({})
+        if data:
+            user_pairs = data.get("user_pairs", {})
+        else:
+            user_pairs = {}
+    except Exception as e:
+        print(f"Error loading user pairs from MongoDB: {e}")
+
+# Panggil fungsi untuk memuat pasangan pengguna
+load_user_pairs_from_mongodb()
+def remove_user_pair_from_mongodb(user_id):
+    try:
+        partner_id = user_pairs.pop(user_id, None)
+        if partner_id:
+            user_pairs.pop(partner_id, None)
+            pairs_collection.delete_many({"$or": [{"user_id": user_id}, {"user_id": partner_id}]})
+            print(f"User pair ({user_id}, {partner_id}) removed from the database.")
+        save_user_pairs_to_mongodb(user_pairs)  # Simpan perubahan ke database
+    except Exception as e:
+        print(f"Error removing user pair from database: {e}")
+
 
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -157,18 +190,15 @@ async def start_chat(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id
         await context.bot.send_message(chat_id=user_id, text='Harap Tunggu Sebentar....')
 
 async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.message.from_user
-    if user.id in [u.id for u in users]:
-        users[:] = [u for u in users if u.id != user.id]
-        partner_id = user_pairs.pop(user.id, None)
+    user_id = update.message.from_user.id
+    if user_id in user_pairs:
+        remove_user_pair_from_mongodb(user_id)
+        await context.bot.send_message(chat_id=user_id, text="Anda telah meninggalkan chat. Pasangan Anda juga telah diberitahu.")
+        partner_id = user_pairs.get(user_id)
         if partner_id:
-            user_pairs.pop(partner_id, None)
-            users[:] = [u for u in users if u.id != partner_id]
-            await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. Anda juga telah keluar dari pool.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
-        await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
+            await context.bot.send_message(chat_id=partner_id, text="Pasangan Anda telah meninggalkan chat.")
     else:
-        await update.message.reply_text('Anda belum bergabung dalam pool chat.\n\n'
-        "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
+        await context.bot.send_message(chat_id=user_id, text="Anda tidak sedang dalam chat dengan pasangan.")
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -310,23 +340,44 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
         )
 
-async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    active_user_count = len(users)
-    if active_user_count == 0:
-        await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
-        return
+async def active_users(update: types.Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        data = pairs_collection.find_one({})
+        
+        if data:
+            user_pairs = data.get("user_pairs", {})
+            active_user_count = len(user_pairs)
+            
+            if active_user_count == 0:
+                await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
+                return
 
-    # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
-    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in users]
-    active_user_list = "\n".join(active_user_info)
+            # Mengumpulkan ID pengguna dari user_pairs
+            active_user_info = []
+            for user_id in user_pairs:
+                user = users_collection.find_one({"user_id": user_id})
+                if user:
+                    full_name = user.get("full_name", "Nama Tidak Diketahui")
+                    username = user.get("username", "Username Tidak Diketahui")
+                    active_user_info.append(f"ID: {user_id}, Nama Lengkap: {full_name}, Username: {username}")
+                else:
+                    active_user_info.append(f"ID: {user_id}, Nama Lengkap: Nama Tidak Diketahui, Username: Username Tidak Diketahui")
+            
+            active_user_list = "\n".join(active_user_info)
 
-    # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
-    response_message = (
-        f"Jumlah pengguna aktif saat ini: {active_user_count}\n\n"
-        f"Daftar pengguna aktif:\n{active_user_list}"
-    )
-    await update.message.reply_text(response_message)
-
+            # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
+            response_message = (
+                f"Jumlah pengguna aktif saat ini: {active_user_count}\n\n"
+                f"Daftar pengguna aktif:\n{active_user_list}"
+            )
+            await update.message.reply_text(response_message)
+        else:
+            await update.message.reply_text("Tidak ada data pasangan pengguna ditemukan di database.")
+    
+    except Exception as e:
+        print(f"Error fetching active users from MongoDB: {e}")
+        await update.message.reply_text("Terjadi kesalahan saat mengambil data pengguna aktif.")
+        
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
     if message:
