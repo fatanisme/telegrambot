@@ -37,18 +37,13 @@ def show_photos():
         for message in chat.get('messages', []):
             if message.get('message_type') == 'photo':
                 sender_id = message.get('sender_id')
-                photos = message.get('photo', [])  # Menggunakan get() untuk menghindari KeyError
+                file_id = message.get('message')  # Mengambil file_id langsung dari message
                 
-                if not photos:
-                    continue
-
-                # Mengambil versi foto dengan resolusi tertinggi
-                photo_id = photos[-1].get('file_id')
-                if not photo_id:
+                if not file_id:
                     continue
 
                 try:
-                    photo_url = get_telegram_file_url(bot_token, photo_id)
+                    photo_url = get_telegram_file_url(bot_token, file_id)
                 except Exception as e:
                     photo_url = None
                     print(f"Error fetching photo URL: {e}")
