@@ -89,7 +89,7 @@ def show_photos():
             <tr>
                 <th>Sender ID</th>
                 <th>Full Name</th>
-                <th>Photo</th>
+                <th>Photo URL</th>
             </tr>
             {% for photo in photos %}
             <tr>
@@ -97,7 +97,7 @@ def show_photos():
                 <td>{{ photo.full_name }}</td>
                 <td>
                     {% if photo.photo_url %}
-                        <img src="{{ photo.photo_url }}" alt="Photo" width="100">
+                        <a href="{{ photo.photo_url }}" target="_blank">{{ photo.photo_url }}</a>
                     {% else %}
                         No Photo Available
                     {% endif %}
