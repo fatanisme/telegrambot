@@ -76,6 +76,10 @@ def show_photos():
                 padding: 10px;
                 text-align: left;
             }
+            img {
+                max-width: 200px;
+                height: auto;
+            }
         </style>
     </head>
     <body>
@@ -84,7 +88,7 @@ def show_photos():
             <tr>
                 <th>Sender ID</th>
                 <th>Full Name</th>
-                <th>Photo URL</th>
+                <th>Photo</th>
             </tr>
             {% for photo in photos %}
             <tr>
@@ -92,7 +96,7 @@ def show_photos():
                 <td>{{ photo.full_name }}</td>
                 <td>
                     {% if photo.photo_url %}
-                        <a href="{{ photo.photo_url }}" target="_blank">{{ photo.photo_url }}</a>
+                        <img src="{{ photo.photo_url }}" alt="Photo">
                     {% else %}
                         No Photo Available
                     {% endif %}
