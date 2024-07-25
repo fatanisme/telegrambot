@@ -335,7 +335,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
         )
 
-async def active_users(update: types.Message):
+async def active_users(update: Message,context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         data = pairs_collection.find_one({})
         
@@ -484,7 +484,10 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
-
+    
+    global user_pairs
+    user_pairs = load_user_pairs_from_mongodb()
+    
     application.run_polling()
 
 if __name__ == '__main__':
