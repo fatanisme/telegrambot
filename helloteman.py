@@ -344,7 +344,7 @@ async def active_users(update: Update,context: ContextTypes.DEFAULT_TYPE) -> Non
             active_user_count = len(user_pairs)
             
             if active_user_count == 0:
-                await update.reply("Tidak ada pengguna aktif saat ini.")
+                await update.message.reply("Tidak ada pengguna aktif saat ini.")
                 return
 
             # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
@@ -356,13 +356,13 @@ async def active_users(update: Update,context: ContextTypes.DEFAULT_TYPE) -> Non
                 f"Jumlah pengguna aktif saat ini: {active_user_count}\n\n"
                 f"Daftar pengguna aktif:\n{active_user_list}"
             )
-            await update.reply(response_message)
+            await update.message.reply(response_message)
         else:
-            await update.reply("Tidak ada data pasangan pengguna ditemukan di database.")
+            await update.message.reply("Tidak ada data pasangan pengguna ditemukan di database.")
     
     except Exception as e:
         
-        await update.reply("Terjadi kesalahan saat mengambil data pengguna aktif.")
+        await update.message.reply("Terjadi kesalahan saat mengambil data pengguna aktif.")
         
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
