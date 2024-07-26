@@ -2,6 +2,7 @@ import pyautogui
 import pyperclip
 import time
 import subprocess
+import os
 
 # Fungsi untuk mencari dan membuka aplikasi Telegram melalui tombol pencarian Linux
 def open_telegram():
