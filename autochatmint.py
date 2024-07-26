@@ -30,21 +30,23 @@ def send_messages():
     promo_text = read_text_from_file('textpromo.txt')
     promo_text2 = read_text_from_file('textpromo2.txt')
     
-    for i in range(1, 2):
+    for i in range(1, 101):
         # Kirim pesan "/next"
         pyautogui.typewrite("/next")
         pyautogui.press('enter')
         time.sleep(6)  # Jeda 3 detik
 
-        pyperclip.copy(promo_text)
-
-        # Kirim pesan promosi
-        pyautogui.hotkey('ctrl', 'v')  # Tempel teks dari clipboard
-        pyperclip.copy(promo_text2)
-        pyautogui.hotkey('ctrl', 'v')  # Tempel teks dari clipboard
-        pyautogui.hotkey('shift', 'enter')  # Tempel teks dari clipboard
-        pyautogui.typewrite(format(i))
-        time.sleep(0.5)  # Jeda kecil antara ketikan karakter
+        message_lines = [""] 
+        # Kirim setiap baris pesan
+        for line in message_lines:
+            pyautogui.typewrite(line)
+            pyperclip.copy(promo_text)
+            pyautogui.hotkey('ctrl', 'v')  
+            pyperclip.copy(promo_text2)
+            pyautogui.hotkey('ctrl', 'v')  
+            pyautogui.hotkey('shift', 'enter')  
+            pyautogui.typewrite(format(i))
+            time.sleep(0.5)  # Jeda kecil antara ketikan karakter
 
         # Kirim pesan
         pyautogui.press('enter')
