@@ -1,4 +1,5 @@
 import pyautogui
+import pyperclip
 import time
 import subprocess
 
@@ -16,26 +17,34 @@ def open_telegram():
     pyautogui.press('enter')
     time.sleep(3)  # Tunggu beberapa detik agar aplikasi Telegram terbuka sepenuhnya
 
+# Fungsi untuk membaca teks dari file dan mengembalikannya sebagai string
+def read_text_from_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+
 # Mengirim pesan ke chat room
 def send_messages():
     # Tunggu beberapa detik untuk memastikan jendela chat aktif
     time.sleep(3)
 
-    for i in range(1, 101):
+    promo_text = read_text_from_file('textpromo.txt')
+    promo_text2 = read_text_from_file('textpromo2.txt')
+    
+    for i in range(1, 2):
         # Kirim pesan "/next"
         pyautogui.typewrite("/next")
         pyautogui.press('enter')
         time.sleep(6)  # Jeda 3 detik
 
-        # Kirim pesan promosi dengan newline menggunakan Shift+Enter
-        message_lines = [""] # Digantikan dengan nomor
-        
-        # Kirim setiap baris pesan
-        for line in message_lines:
-            pyautogui.typewrite(line)
-            pyautogui.hotkey('ctrl', 'v')  # Gunakan Shift+Enter untuk newline
-            pyautogui.typewrite(format(i))
-            time.sleep(0.5)  # Jeda kecil antara ketikan karakter
+        pyperclip.copy(promo_text)
+
+        # Kirim pesan promosi
+        pyautogui.hotkey('ctrl', 'v')  # Tempel teks dari clipboard
+        pyperclip.copy(promo_text2)
+        pyautogui.hotkey('ctrl', 'v')  # Tempel teks dari clipboard
+        pyautogui.hotkey('shift', 'enter')  # Tempel teks dari clipboard
+        pyautogui.typewrite(format(i))
+        time.sleep(0.5)  # Jeda kecil antara ketikan karakter
 
         # Kirim pesan
         pyautogui.press('enter')
