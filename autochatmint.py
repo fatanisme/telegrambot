@@ -14,12 +14,12 @@ def open_telegram():
 
     # Tekan Enter untuk membuka aplikasi Telegram
     pyautogui.press('enter')
-    time.sleep(5)  # Tunggu beberapa detik agar aplikasi Telegram terbuka sepenuhnya
+    time.sleep(3)  # Tunggu beberapa detik agar aplikasi Telegram terbuka sepenuhnya
 
 # Mengirim pesan ke chat room
 def send_messages():
     # Tunggu beberapa detik untuk memastikan jendela chat aktif
-    time.sleep(5)
+    time.sleep(3)
 
     for i in range(1, 101):
         # Kirim pesan "/next"
@@ -33,7 +33,7 @@ def send_messages():
         # Kirim setiap baris pesan
         for line in message_lines:
             pyautogui.typewrite(line)
-            pyautogui.hotkey('shift', 'enter')  # Gunakan Shift+Enter untuk newline
+            pyautogui.hotkey('ctrl', 'v')  # Gunakan Shift+Enter untuk newline
             pyautogui.typewrite(format(i))
             time.sleep(0.5)  # Jeda kecil antara ketikan karakter
 
