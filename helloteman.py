@@ -193,12 +193,11 @@ async def leave(update: Update, context: CallbackContext) -> None:
         if partner_id:
             user_pairs.pop(partner_id, None)
             users[:] = [u for u in users if u.id != partner_id]
-            
-            # Remove user pairs from database
-            user_pairs_collection.delete_many({"user_id": {"$in": [user.id, partner_id]}})
-            
+                
             await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. Anda juga telah keluar dari pool.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
         await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
+        # Remove user pairs from database
+        user_pairs_collection.delete_many({"user_id": {"$in": [user.id, partner_id]}})
     else:
         await update.message.reply_text('Anda belum bergabung dalam pool chat.\n\n'
                                         "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
