@@ -53,6 +53,7 @@ def send_messages():
             pyautogui.typewrite(line)
             pyperclip.copy(promo_text)
             pyautogui.hotkey('ctrl', 'v')  
+            pyautogui.press('enter')
             pyperclip.copy(promo_text2)
             pyautogui.hotkey('ctrl', 'v')  
             pyautogui.hotkey('shift', 'enter')  
