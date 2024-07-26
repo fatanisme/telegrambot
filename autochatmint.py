@@ -25,7 +25,7 @@ def send_messages():
         # Kirim pesan "/next"
         pyautogui.typewrite("/next")
         pyautogui.press('enter')
-        time.sleep(3)  # Jeda 3 detik
+        time.sleep(6)  # Jeda 3 detik
 
         # Kirim pesan promosi dengan newline menggunakan Shift+Enter
         message_lines = [""] # Digantikan dengan nomor
