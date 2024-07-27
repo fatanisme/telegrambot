@@ -99,7 +99,7 @@ def chats():
 @app.route('/view_photos')
 def view_photos():
     page = int(request.args.get('page', 1))
-    per_page = 20
+    per_page = 10
     bot_token = HELLOTEMAN_BOT_TOKEN
 
     chats = chats_collection.find({ "messages.message_type": "photo" })
