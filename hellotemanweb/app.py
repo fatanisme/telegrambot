@@ -1,7 +1,13 @@
+import sys
+import os
+
+# Menambahkan path folder 'telegrambot' ke sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from bottokens import HELLOTEMAN_BOT_TOKEN
 from flask import Flask, request, render_template
 from pymongo import MongoClient
 from math import ceil
-from .bottokens import HELLOTEMAN_BOT_TOKEN
 import requests
 
 app = Flask(__name__)
