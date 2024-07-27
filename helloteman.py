@@ -142,7 +142,46 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
     await update.message.reply_text(help_message)
+async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.message.from_user
+    keyboard = [
+        [InlineKeyboardButton("Umur", callback_data='update_age')],
+        [InlineKeyboardButton("Jenis Kelamin", callback_data='update_gender')],
+        [InlineKeyboardButton("Kota/Kabupaten", callback_data='update_city')],
+        [InlineKeyboardButton("Tutup", callback_data='close')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Pilih pengaturan yang ingin diubah:', reply_markup=reply_markup)
 
+
+
+async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'update_age':
+        user_settings[user_id] = 'waiting_for_age'
+        await query.edit_message_text('Silakan kirimkan umur Anda:')
+    elif query.data == 'update_gender':
+        user_settings[user_id] = 'waiting_for_gender'
+        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
+    elif query.data == 'update_city':
+        user_settings[user_id] = 'waiting_for_city'
+        await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
+    elif query.data == 'close':
+        await query.edit_message_text('Pengaturan ditutup.')
+
+async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'pria':
+        user_settings[user_id] = 'waiting_for_pria'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+    elif query.data == 'wanita':
+        user_settings[user_id] = 'waiting_for_wanita'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+        
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     user_id = user.id
@@ -397,45 +436,7 @@ async def userdetail(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     else:
         await update.message.reply_text("Harap masukkan user_id yang valid. Contoh: /userdetail 1")
 
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.message.from_user
-    keyboard = [
-        [InlineKeyboardButton("Umur", callback_data='update_age')],
-        [InlineKeyboardButton("Jenis Kelamin", callback_data='update_gender')],
-        [InlineKeyboardButton("Kota/Kabupaten", callback_data='update_city')],
-        [InlineKeyboardButton("Tutup", callback_data='close')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Pilih pengaturan yang ingin diubah:', reply_markup=reply_markup)
 
-
-
-async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user_id = query.from_user.id
-
-    if query.data == 'update_age':
-        user_settings[user_id] = 'waiting_for_age'
-        await query.edit_message_text('Silakan kirimkan umur Anda:')
-    elif query.data == 'update_gender':
-        user_settings[user_id] = 'waiting_for_gender'
-        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
-    elif query.data == 'update_city':
-        user_settings[user_id] = 'waiting_for_city'
-        await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
-    elif query.data == 'close':
-        await query.edit_message_text('Pengaturan ditutup.')
-
-async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user_id = query.from_user.id
-
-    if query.data == 'pria':
-        user_settings[user_id] = 'waiting_for_pria'
-        await query.edit_message_text('Silakan masukan nama Anda:')
-    elif query.data == 'wanita':
-        user_settings[user_id] = 'waiting_for_wanita'
-        await query.edit_message_text('Silakan masukan nama Anda:')
 
 async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
@@ -476,8 +477,8 @@ def main():
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
-    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(CallbackQueryHandler(settings_button_handler))
+    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
 
     application.run_polling()
