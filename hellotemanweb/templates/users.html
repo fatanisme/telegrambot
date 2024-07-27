@@ -1,0 +1,48 @@
+{% extends "base.html" %} {% block title %}Users{% endblock %} {% block content
+%}
+<h1>Users</h1>
+<form method="get">
+  <input type="text" name="user_id" placeholder="User ID" />
+  <input type="text" name="username" placeholder="Username" />
+  <input type="text" name="gender" placeholder="Gender" />
+  <input type="text" name="city" placeholder="City" />
+  <input type="text" name="age" placeholder="Age" />
+  <button type="submit">Search</button>
+</form>
+<table>
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>Username</th>
+      <th>First Name</th>
+      <th>Full Name</th>
+      <th>Gender</th>
+      <th>City</th>
+      <th>Age</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.user_id }}</td>
+      <td>{{ user.username }}</td>
+      <td>{{ user.first_name }}</td>
+      <td>{{ user.full_name }}</td>
+      <td>{{ user.gender }}</td>
+      <td>{{ user.city }}</td>
+      <td>{{ user.age }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if pagination %}
+<div>
+  {% if pagination.has_prev %}
+  <a href="?page={{ pagination.prev_num }}">Previous</a>
+  {% endif %}
+  <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+  <a href="?page={{ pagination.next_num }}">Next</a>
+  {% endif %}
+</div>
+{% endif %} {% endblock %}

@@ -4,6 +4,7 @@ import time
 import subprocess
 import os
 
+os.environ['DISPLAY'] = ':0'
 # Fungsi untuk mencari dan membuka aplikasi Telegram melalui tombol pencarian Linux
 def open_telegram():
     # Tekan tombol Super (biasanya Windows) untuk membuka menu aplikasi
