@@ -23,7 +23,7 @@ def send_messages():
     # Tunggu beberapa detik untuk memastikan jendela chat aktif
     time.sleep(1)
 
-    for i in range(1, 101):
+    for i in range(1, 151):
         # Kirim pesan "/next"
         pyautogui.typewrite("/next")
         pyautogui.press('enter')
