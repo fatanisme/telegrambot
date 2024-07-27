@@ -19,7 +19,15 @@
     <tr>
       <td>{{ chat.sender_id }}</td>
       <td>{{ chat.message_type }}</td>
-      <td>{{ chat.message }}</td>
+      <td>
+        {% if chat.message_type == 'photo' %}
+        <img
+          src="{{ chat.message }}"
+          alt="Photo"
+          style="max-width: 200px; height: auto"
+        />
+        {% else %} {{ chat.message }} {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

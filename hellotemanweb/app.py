@@ -83,16 +83,29 @@ def chats():
         query['messages.timestamp'] = timestamp
 
     chats = []
+    bot_token = HELLOTEMAN_BOT_TOKEN
+
     if query:
         chats_data = chats_collection.find(query)
         for chat in chats_data:
             for message in chat.get('messages', []):
-                if message.get('message_type') in ['text', 'sticker', 'animation', 'document', 'photo', 'video', 'voice']:
-                    chats.append({
-                        'sender_id': message.get('sender_id'),
-                        'message_type': message.get('message_type'),
-                        'message': message.get('message')
-                    })
+                message_data = {
+                    'sender_id': message.get('sender_id'),
+                    'message_type': message.get('message_type')
+                }
+                if message.get('message_type') == 'photo':
+                    file_id = message.get('message')
+                    if file_id:
+                        try:
+                            photo_url = get_telegram_file_url(bot_token, file_id)
+                            message_data['message'] = photo_url
+                        except Exception as e:
+                            message_data['message'] = None
+                            print(f"Error fetching photo URL: {e}")
+                else:
+                    message_data['message'] = message.get('message')
+
+                chats.append(message_data)
 
     return render_template('chats.html', chats=chats)
 
