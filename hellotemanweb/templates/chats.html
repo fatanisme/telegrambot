@@ -21,11 +21,7 @@
       <td>{{ chat.message_type }}</td>
       <td>
         {% if chat.message_type == 'photo' %}
-        <img
-          src="{{ chat.message }}"
-          alt="Photo"
-          style="max-width: 200px; height: auto"
-        />
+        <img src="{{ chat.message }}" alt="Photo" />
         {% else %} {{ chat.message }} {% endif %}
       </td>
     </tr>
