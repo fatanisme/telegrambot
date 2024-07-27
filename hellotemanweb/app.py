@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template
 from pymongo import MongoClient
 from math import ceil
-from telegrambot.bottokens import HELLOTEMAN_BOT_TOKEN
+from .bottokens import HELLOTEMAN_BOT_TOKEN
 import requests
 
 app = Flask(__name__)

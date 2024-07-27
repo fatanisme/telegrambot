@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Chats{% endblock %} {% block content
+%}
+<h1>Chats</h1>
+<form method="get">
+  <input type="text" name="chatroom_id" placeholder="Chatroom ID" />
+  <input type="text" name="timestamp" placeholder="Timestamp (yyyy-mm-dd)" />
+  <button type="submit">Search</button>
+</form>
+<table>
+  <thead>
+    <tr>
+      <th>Sender ID</th>
+      <th>Message Type</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for chat in chats %}
+    <tr>
+      <td>{{ chat.sender_id }}</td>
+      <td>{{ chat.message_type }}</td>
+      <td>{{ chat.message }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
