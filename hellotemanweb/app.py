@@ -67,6 +67,12 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
+    if value is None:
+        return ""
+    return datetime.utcfromtimestamp(value).strftime(format)
+
 @app.route('/users')
 @login_required
 def users():
