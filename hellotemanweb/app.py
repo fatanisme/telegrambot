@@ -200,7 +200,12 @@ def chats():
 @app.route('/view_photos')
 @login_required
 def view_photos():
-    page = int(request.args.get('page', 1))
+    page = request.args.get('page', 1)
+    try:
+        page = int(page)
+    except ValueError:
+        page = 1
+    
     per_page = 10
     bot_token = HELLOTEMAN_BOT_TOKEN
 
