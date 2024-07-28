@@ -1,22 +1,32 @@
 import sys
 import os
-
-# Menambahkan path folder 'telegrambot' ke sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from bottokens import HELLOTEMAN_BOT_TOKEN
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from pymongo import MongoClient
 from math import ceil
 import requests
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from bottokens import HELLOTEMAN_BOT_TOKEN, LOGIN_USERNAME, LOGIN_PASSWORD
+
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'
 
 # Konfigurasi MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['helloteman_db']
 users_collection = db['users']
 chats_collection = db['chats']
+
+# Konfigurasi Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# Kelas User
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
 
 # Fungsi untuk mendapatkan URL file dari Telegram
 def get_telegram_file_url(bot_token, file_id):
@@ -29,11 +39,36 @@ def get_telegram_file_url(bot_token, file_id):
     file_url = f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
     return file_url
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == LOGIN_USERNAME and password == LOGIN_PASSWORD:
+            user = User(id=1)
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Login gagal. Periksa kembali username dan password Anda.', 'danger')
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/users')
+@login_required
 def users():
     user_id = request.args.get('user_id', '')
     username = request.args.get('username', '')
@@ -72,6 +107,7 @@ def users():
     return render_template('users.html', users=users, pagination=pagination)
 
 @app.route('/chats')
+@login_required
 def chats():
     chatroom_id = request.args.get('chatroom_id', '')
     timestamp = request.args.get('timestamp', '')
@@ -83,33 +119,28 @@ def chats():
         query['messages.timestamp'] = timestamp
 
     chats = []
-    bot_token = HELLOTEMAN_BOT_TOKEN
-
     if query:
         chats_data = chats_collection.find(query)
         for chat in chats_data:
             for message in chat.get('messages', []):
-                message_data = {
-                    'sender_id': message.get('sender_id'),
-                    'message_type': message.get('message_type')
-                }
-                if message.get('message_type') == 'photo':
-                    file_id = message.get('message')
-                    if file_id:
+                if message.get('message_type') in ['text', 'sticker', 'animation', 'document', 'photo', 'video', 'voice']:
+                    if message.get('message_type') == 'photo':
+                        file_id = message.get('message')
                         try:
-                            photo_url = get_telegram_file_url(bot_token, file_id)
-                            message_data['message'] = photo_url
+                            message['message'] = get_telegram_file_url(HELLOTEMAN_BOT_TOKEN, file_id)
                         except Exception as e:
-                            message_data['message'] = None
+                            message['message'] = None
                             print(f"Error fetching photo URL: {e}")
-                else:
-                    message_data['message'] = message.get('message')
-
-                chats.append(message_data)
+                    chats.append({
+                        'sender_id': message.get('sender_id'),
+                        'message_type': message.get('message_type'),
+                        'message': message.get('message')
+                    })
 
     return render_template('chats.html', chats=chats)
 
 @app.route('/view_photos')
+@login_required
 def view_photos():
     page = int(request.args.get('page', 1))
     per_page = 10
