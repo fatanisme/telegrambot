@@ -107,10 +107,12 @@ def users():
     return render_template('users.html', users=users, pagination=pagination)
 
 @app.route('/chatrooms')
-@login_required
 def chatrooms():
     # Menghitung jumlah pesan berdasarkan chatroom_id
     pipeline = [
+        {
+            '$unwind': '$messages'
+        },
         {
             '$group': {
                 '_id': '$chatroom_id',
