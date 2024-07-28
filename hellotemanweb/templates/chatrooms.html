@@ -1,0 +1,20 @@
+{% extends "base.html" %} {% block title %}Chatrooms{% endblock %} {% block
+content %}
+<h2>Chatrooms</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Chatroom ID</th>
+      <th>Jumlah Pesan</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for chatroom in chatrooms %}
+    <tr>
+      <td>{{ chatroom._id }}</td>
+      <td>{{ chatroom.message_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

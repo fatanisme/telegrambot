@@ -106,6 +106,21 @@ def users():
 
     return render_template('users.html', users=users, pagination=pagination)
 
+@app.route('/chatrooms')
+@login_required
+def chatrooms():
+    # Menghitung jumlah pesan berdasarkan chatroom_id
+    pipeline = [
+        {
+            '$group': {
+                '_id': '$chatroom_id',
+                'message_count': {'$sum': 1}
+            }
+        }
+    ]
+    chatrooms = list(chats_collection.aggregate(pipeline))
+    return render_template('chatrooms.html', chatrooms=chatrooms)
+
 @app.route('/chats')
 @login_required
 def chats():
