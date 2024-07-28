@@ -1,10 +1,11 @@
 import sys
 import os
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from pymongo import MongoClient
 from math import ceil
 import requests
+from bson import ObjectId
 from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -126,7 +127,7 @@ def chatrooms():
             '$group': {
                 '_id': '$chatroom_id',
                 'message_count': {'$sum': 1},
-                'last_update': {'$max': '$messages.timestamp'}
+                'last_update': {'$max': {'$toLong': '$messages.timestamp'}}
             }
         },
         {
@@ -162,6 +163,11 @@ def chatrooms():
     
     return render_template('chatrooms.html', chatrooms=chatrooms, page=page, total_pages=total_pages, sort_by=sort_by, order=order)
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
+    if value is None:
+        return ""
+    return datetime.utcfromtimestamp(value).strftime(format)
 @app.route('/chats')
 @login_required
 def chats():
@@ -194,12 +200,6 @@ def chats():
                     })
 
     return render_template('chats.html', chats=chats)
-
-@app.template_filter('datetimeformat')
-def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
-    if value is None:
-        return ""
-    return datetime.utcfromtimestamp(value).strftime(format)
 
 @app.route('/view_photos')
 @login_required
