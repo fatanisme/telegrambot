@@ -115,7 +115,12 @@ def users():
 
 @app.route('/chatrooms')
 def chatrooms():
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get('page', 1)
+    try:
+        page = int(page)
+    except ValueError:
+        page = 1
+    
     per_page = 10
     
     # Menghitung jumlah pesan dan mendapatkan timestamp terakhir berdasarkan chatroom_id
@@ -158,10 +163,11 @@ def chatrooms():
         }
     ]
     total_chatrooms_result = list(chats_collection.aggregate(total_chatrooms_pipeline))
-    total_chatrooms = total_chatrooms_result[0]['total'] if total_chatrooms_result else 0
+    total_chatrooms = int(total_chatrooms_result[0]['total']) if total_chatrooms_result else 0
     total_pages = (total_chatrooms + per_page - 1) // per_page
     
     return render_template('chatrooms.html', chatrooms=chatrooms, page=page, total_pages=total_pages)
+
 
 
 @app.route('/chats')
@@ -200,12 +206,7 @@ def chats():
 @app.route('/view_photos')
 @login_required
 def view_photos():
-    page = request.args.get('page', 1)
-    try:
-        page = int(page)
-    except ValueError:
-        page = 1
-    
+    page = int(request.args.get('page', 1))
     per_page = 10
     bot_token = HELLOTEMAN_BOT_TOKEN
 
