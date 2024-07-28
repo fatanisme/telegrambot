@@ -113,7 +113,7 @@ def chatrooms():
     sort_by = request.args.get('sort_by', 'message_count')
     order = request.args.get('order', 'desc')
 
-    per_page = 10
+    per_page = 30
     
     sort_order = -1 if order == 'desc' else 1
 
