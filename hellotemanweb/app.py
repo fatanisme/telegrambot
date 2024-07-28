@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from pymongo import MongoClient
 from math import ceil
 import requests
+from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from bottokens import HELLOTEMAN_BOT_TOKEN, LOGIN_USERNAME, LOGIN_PASSWORD
@@ -67,6 +68,12 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
+    if value is None:
+        return ""
+    return datetime.utcfromtimestamp(value).strftime(format)
+
 @app.route('/users')
 @login_required
 def users():
@@ -108,7 +115,10 @@ def users():
 
 @app.route('/chatrooms')
 def chatrooms():
-    # Menghitung jumlah pesan berdasarkan chatroom_id
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    # Menghitung jumlah pesan dan mendapatkan timestamp terakhir berdasarkan chatroom_id
     pipeline = [
         {
             '$unwind': '$messages'
@@ -116,12 +126,43 @@ def chatrooms():
         {
             '$group': {
                 '_id': '$chatroom_id',
-                'message_count': {'$sum': 1}
+                'message_count': {'$sum': 1},
+                'last_message_timestamp': {'$max': '$messages.timestamp'}
             }
+        },
+        {
+            '$sort': {'message_count': -1}
+        },
+        {
+            '$skip': (page - 1) * per_page
+        },
+        {
+            '$limit': per_page
         }
     ]
+    
     chatrooms = list(chats_collection.aggregate(pipeline))
-    return render_template('chatrooms.html', chatrooms=chatrooms)
+    
+    # Menghitung total chatroom untuk paginasi
+    total_chatrooms_pipeline = [
+        {
+            '$unwind': '$messages'
+        },
+        {
+            '$group': {
+                '_id': '$chatroom_id'
+            }
+        },
+        {
+            '$count': 'total'
+        }
+    ]
+    total_chatrooms_result = list(chats_collection.aggregate(total_chatrooms_pipeline))
+    total_chatrooms = total_chatrooms_result[0]['total'] if total_chatrooms_result else 0
+    total_pages = (total_chatrooms + per_page - 1) // per_page
+    
+    return render_template('chatrooms.html', chatrooms=chatrooms, page=page, total_pages=total_pages)
+
 
 @app.route('/chats')
 @login_required

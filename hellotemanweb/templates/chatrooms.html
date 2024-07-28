@@ -6,6 +6,7 @@ content %}
     <tr>
       <th>Chatroom ID</th>
       <th>Jumlah Pesan</th>
+      <th>Terakhir Chat</th>
     </tr>
   </thead>
   <tbody>
@@ -13,8 +14,45 @@ content %}
     <tr>
       <td>{{ chatroom._id }}</td>
       <td>{{ chatroom.message_count }}</td>
+      <td>{{ chatroom.last_message_timestamp | datetimeformat }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="{{ url_for('chatrooms', page=page-1) }}">&laquo; Previous</a>
+  {% endif %} {% for p in range(1, total_pages + 1) %} {% if p == page %}
+  <span>{{ p }}</span>
+  {% else %}
+  <a href="{{ url_for('chatrooms', page=p) }}">{{ p }}</a>
+  {% endif %} {% endfor %} {% if page < total_pages %}
+  <a href="{{ url_for('chatrooms', page=page+1) }}">Next &raquo;</a>
+  {% endif %}
+</div>
 {% endblock %}
+
+<style>
+  .pagination {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .pagination a {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #007bff;
+  }
+  .pagination a:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  .pagination span {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    background-color: #f2f2f2;
+    color: #333;
+  }
+</style>
