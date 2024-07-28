@@ -68,12 +68,6 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
-@app.template_filter('datetimeformat')
-def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
-    if value is None:
-        return ""
-    return datetime.utcfromtimestamp(value).strftime(format)
-
 @app.route('/users')
 @login_required
 def users():
@@ -115,7 +109,15 @@ def users():
 
 @app.route('/chatrooms')
 def chatrooms():
-    # Menghitung jumlah pesan berdasarkan chatroom_id
+    page = request.args.get('page', 1, type=int)
+    sort_by = request.args.get('sort_by', 'message_count')
+    order = request.args.get('order', 'desc')
+
+    per_page = 10
+    
+    sort_order = -1 if order == 'desc' else 1
+
+    # Menghitung jumlah pesan dan mendapatkan timestamp terakhir berdasarkan chatroom_id
     pipeline = [
         {
             '$unwind': '$messages'
@@ -123,12 +125,42 @@ def chatrooms():
         {
             '$group': {
                 '_id': '$chatroom_id',
-                'message_count': {'$sum': 1}
+                'message_count': {'$sum': 1},
+                'last_update': {'$max': '$messages.timestamp'}
             }
+        },
+        {
+            '$sort': {sort_by: sort_order}
+        },
+        {
+            '$skip': (page - 1) * per_page
+        },
+        {
+            '$limit': per_page
         }
     ]
+    
     chatrooms = list(chats_collection.aggregate(pipeline))
-    return render_template('chatrooms.html', chatrooms=chatrooms)
+    
+    # Menghitung total chatroom untuk paginasi
+    total_chatrooms_pipeline = [
+        {
+            '$unwind': '$messages'
+        },
+        {
+            '$group': {
+                '_id': '$chatroom_id'
+            }
+        },
+        {
+            '$count': 'total'
+        }
+    ]
+    total_chatrooms_result = list(chats_collection.aggregate(total_chatrooms_pipeline))
+    total_chatrooms = int(total_chatrooms_result[0]['total']) if total_chatrooms_result else 0
+    total_pages = (total_chatrooms + per_page - 1) // per_page
+    
+    return render_template('chatrooms.html', chatrooms=chatrooms, page=page, total_pages=total_pages, sort_by=sort_by, order=order)
 
 @app.route('/chats')
 @login_required
@@ -162,6 +194,12 @@ def chats():
                     })
 
     return render_template('chats.html', chats=chats)
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
+    if value is None:
+        return ""
+    return datetime.utcfromtimestamp(value).strftime(format)
 
 @app.route('/view_photos')
 @login_required

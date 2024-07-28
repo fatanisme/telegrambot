@@ -4,9 +4,24 @@ content %}
 <table>
   <thead>
     <tr>
-      <th>Chatroom ID</th>
-      <th>Jumlah Pesan</th>
-      <th>Terakhir Chat</th>
+      <th>
+        <a
+          href="{{ url_for('chatrooms', page=page, sort_by='chatroom_id', order='asc' if sort_by == 'chatroom_id' and order == 'desc' else 'desc') }}"
+          >Chatroom ID</a
+        >
+      </th>
+      <th>
+        <a
+          href="{{ url_for('chatrooms', page=page, sort_by='message_count', order='asc' if sort_by == 'message_count' and order == 'desc' else 'desc') }}"
+          >Jumlah Pesan</a
+        >
+      </th>
+      <th>
+        <a
+          href="{{ url_for('chatrooms', page=page, sort_by='last_update', order='asc' if sort_by == 'last_update' and order == 'desc' else 'desc') }}"
+          >Terakhir Update</a
+        >
+      </th>
     </tr>
   </thead>
   <tbody>
@@ -14,20 +29,28 @@ content %}
     <tr>
       <td>{{ chatroom._id }}</td>
       <td>{{ chatroom.message_count }}</td>
-      <td>{{ chatroom.last_message_timestamp | datetimeformat }}</td>
+      <td>{{ chatroom.last_update | datetimeformat }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 <div class="pagination">
   {% if page > 1 %}
-  <a href="{{ url_for('chatrooms', page=page-1) }}">&laquo; Previous</a>
+  <a
+    href="{{ url_for('chatrooms', page=page-1, sort_by=sort_by, order=order) }}"
+    >&laquo; Previous</a
+  >
   {% endif %} {% for p in range(1, total_pages + 1) %} {% if p == page %}
   <span>{{ p }}</span>
   {% else %}
-  <a href="{{ url_for('chatrooms', page=p) }}">{{ p }}</a>
+  <a href="{{ url_for('chatrooms', page=p, sort_by=sort_by, order=order) }}"
+    >{{ p }}</a
+  >
   {% endif %} {% endfor %} {% if page < total_pages %}
-  <a href="{{ url_for('chatrooms', page=page+1) }}">Next &raquo;</a>
+  <a
+    href="{{ url_for('chatrooms', page=page+1, sort_by=sort_by, order=order) }}"
+    >Next &raquo;</a
+  >
   {% endif %}
 </div>
 {% endblock %}
