@@ -4,23 +4,20 @@ content %}
 <table>
   <thead>
     <tr>
-      <th>
-        <a
-          href="{{ url_for('chatrooms', page=page, sort_by='chatroom_id', order='asc' if sort_by == 'chatroom_id' and order == 'desc' else 'desc') }}"
-          >Chatroom ID</a
-        >
-      </th>
+      <th>Chatroom ID</th>
       <th>
         <a
           href="{{ url_for('chatrooms', page=page, sort_by='message_count', order='asc' if sort_by == 'message_count' and order == 'desc' else 'desc') }}"
-          >Jumlah Pesan</a
         >
+          Jumlah Pesan
+        </a>
       </th>
       <th>
         <a
           href="{{ url_for('chatrooms', page=page, sort_by='last_update', order='asc' if sort_by == 'last_update' and order == 'desc' else 'desc') }}"
-          >Terakhir Update</a
         >
+          Terakhir Update
+        </a>
       </th>
     </tr>
   </thead>
@@ -29,53 +26,25 @@ content %}
     <tr>
       <td>{{ chatroom._id }}</td>
       <td>{{ chatroom.message_count }}</td>
-      <td>{{ chatroom.last_update | datetimeformat }}</td>
+      <td>{{ chatroom.last_update | dateformat }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-<div class="pagination">
+
+<div>
   {% if page > 1 %}
   <a
-    href="{{ url_for('chatrooms', page=page-1, sort_by=sort_by, order=order) }}"
-    >&laquo; Previous</a
+    href="{{ url_for('chatrooms', page=page - 1, sort_by=sort_by, order=order) }}"
+    >Previous</a
   >
-  {% endif %} {% for p in range(1, total_pages + 1) %} {% if p == page %}
-  <span>{{ p }}</span>
-  {% else %}
-  <a href="{{ url_for('chatrooms', page=p, sort_by=sort_by, order=order) }}"
-    >{{ p }}</a
-  >
-  {% endif %} {% endfor %} {% if page < total_pages %}
+  {% endif %}
+  <span>Page {{ page }} of {{ total_pages }}</span>
+  {% if page < total_pages %}
   <a
-    href="{{ url_for('chatrooms', page=page+1, sort_by=sort_by, order=order) }}"
-    >Next &raquo;</a
+    href="{{ url_for('chatrooms', page=page + 1, sort_by=sort_by, order=order) }}"
+    >Next</a
   >
   {% endif %}
 </div>
 {% endblock %}
-
-<style>
-  .pagination {
-    margin-top: 20px;
-    text-align: center;
-  }
-  .pagination a {
-    margin: 0 5px;
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    text-decoration: none;
-    color: #007bff;
-  }
-  .pagination a:hover {
-    background-color: #007bff;
-    color: white;
-  }
-  .pagination span {
-    margin: 0 5px;
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    background-color: #f2f2f2;
-    color: #333;
-  }
-</style>

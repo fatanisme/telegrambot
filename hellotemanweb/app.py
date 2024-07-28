@@ -107,7 +107,6 @@ def users():
     }
 
     return render_template('users.html', users=users, pagination=pagination)
-
 @app.route('/chatrooms')
 def chatrooms():
     page = request.args.get('page', 1, type=int)
@@ -127,7 +126,7 @@ def chatrooms():
             '$group': {
                 '_id': '$chatroom_id',
                 'message_count': {'$sum': 1},
-                'last_update': {'$max': {'$toLong': '$messages.timestamp'}}
+                'last_update': {'$max': '$messages.timestamp'}
             }
         },
         {
@@ -142,6 +141,11 @@ def chatrooms():
     ]
     
     chatrooms = list(chats_collection.aggregate(pipeline))
+
+    # Konversi last_update dari string ke format tanggal
+    for chatroom in chatrooms:
+        if isinstance(chatroom['last_update'], str):
+            chatroom['last_update'] = datetime.strptime(chatroom['last_update'], '%Y-%m-%d %H:%M:%S.%f').date()
     
     # Menghitung total chatroom untuk paginasi
     total_chatrooms_pipeline = [
@@ -163,11 +167,15 @@ def chatrooms():
     
     return render_template('chatrooms.html', chatrooms=chatrooms, page=page, total_pages=total_pages, sort_by=sort_by, order=order)
 
-@app.template_filter('datetimeformat')
-def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
+# Rute lainnya...
+
+# Filter template untuk memformat tanggal
+@app.template_filter('dateformat')
+def dateformat(value, format='%Y-%m-%d'):
     if value is None:
         return ""
-    return datetime.utcfromtimestamp(value).strftime(format)
+    return value.strftime(format)
+
 @app.route('/chats')
 @login_required
 def chats():
