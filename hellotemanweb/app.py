@@ -132,18 +132,24 @@ def activeusers():
     page = int(request.args.get('page', 1))
     per_page = 30
 
+    # Query untuk user_pairs
+    query = {}
+    if user_id_filter:
+        query['user_id'] = user_id_filter
+
+    # Ambil data dari koleksi user_pairs
+    active_user_ids = [user['user_id'] for user in user_pairs_collection.find(query)]
 
     # Query untuk users
     users_query = {}
-    
-    if user_id_filter:
-        users_query['user_id'] = {'$regex': user_id_filter, '$options': 'i'}
     if username_filter:
         users_query['username'] = {'$regex': username_filter, '$options': 'i'}
     if first_name_filter:
         users_query['first_name'] = {'$regex': first_name_filter, '$options': 'i'}
     if full_name_filter:
         users_query['full_name'] = {'$regex': full_name_filter, '$options': 'i'}
+    if active_user_ids:
+        users_query['user_id'] = {'$in': active_user_ids}
 
     # Ambil data pengguna dari koleksi users
     total_users = users_collection.count_documents(users_query)
