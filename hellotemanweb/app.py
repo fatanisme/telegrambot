@@ -119,25 +119,31 @@ def activeusers():
     page = int(request.args.get('page', 1))
     per_page = 30
 
-    # Ambil data user_ids dari koleksi user_pairs
-    user_ids = list(user_pairs_collection.find({}, {'user_id': 1, '_id': 0}))
-
-    user_ids = [user['user_id'] for user in user_ids]
-
-    # Query untuk mengambil detail pengguna dari koleksi users berdasarkan user_ids
-    query = {'user_id': {'$in': user_ids}}
+    # Query untuk user_pairs
+    query = {}
     if user_id_filter:
         query['user_id'] = user_id_filter
-    if username_filter:
-        query['username'] = username_filter
-    if first_name_filter:
-        query['first_name'] = first_name_filter
-    if full_name_filter:
-        query['full_name'] = full_name_filter
 
-    users = list(users_collection.find(query).skip((page - 1) * per_page).limit(per_page))
-    total_users = users_collection.count_documents(query)
+    # Ambil data dari koleksi user_pairs
+    active_user_ids = [user['user_id'] for user in user_pairs_collection.find(query)]
+
+    # Query untuk users
+    users_query = {}
+    if username_filter:
+        users_query['username'] = {'$regex': username_filter, '$options': 'i'}
+    if first_name_filter:
+        users_query['first_name'] = {'$regex': first_name_filter, '$options': 'i'}
+    if full_name_filter:
+        users_query['full_name'] = {'$regex': full_name_filter, '$options': 'i'}
+    if active_user_ids:
+        users_query['user_id'] = {'$in': active_user_ids}
+
+    # Ambil data pengguna dari koleksi users
+    total_users = users_collection.count_documents(users_query)
     total_pages = ceil(total_users / per_page)
+    skip = (page - 1) * per_page
+
+    active_users = list(users_collection.find(users_query).skip(skip).limit(per_page))
 
     pagination = {
         'page': page,
@@ -146,11 +152,14 @@ def activeusers():
         'has_prev': page > 1,
         'has_next': page < total_pages,
         'prev_num': page - 1,
-        'next_num': page + 1,
-        'per_page': per_page
+        'next_num': page + 1
     }
 
-    return render_template('activeusers.html', users=users, pagination=pagination)
+    return render_template(
+        'activeusers.html',
+        active_users=active_users,
+        pagination=pagination
+    )
 
 @app.route('/chatrooms')
 @login_required
