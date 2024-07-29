@@ -11,6 +11,7 @@ content %}
         id="user_id"
         name="user_id"
         value="{{ request.args.get('user_id', '') }}"
+        class="form-control"
       />
     </div>
     <div class="form-group">
@@ -20,6 +21,7 @@ content %}
         id="username"
         name="username"
         value="{{ request.args.get('username', '') }}"
+        class="form-control"
       />
     </div>
     <div class="form-group">
@@ -29,6 +31,7 @@ content %}
         id="first_name"
         name="first_name"
         value="{{ request.args.get('first_name', '') }}"
+        class="form-control"
       />
     </div>
     <div class="form-group">
@@ -38,14 +41,15 @@ content %}
         id="full_name"
         name="full_name"
         value="{{ request.args.get('full_name', '') }}"
+        class="form-control"
       />
     </div>
     <div class="form-group">
-      <button type="submit">Filter</button>
+      <button type="submit" class="btn btn-primary">Filter</button>
     </div>
   </form>
 
-  <table>
+  <table class="table table-striped">
     <thead>
       <tr>
         <th>No</th>
@@ -72,13 +76,17 @@ content %}
     {% if pagination.has_prev %}
     <a
       href="{{ url_for('activeusers', page=pagination.prev_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
-      >Previous</a
+      class="btn btn-secondary"
     >
+      Previous
+    </a>
     {% endif %} {% if pagination.has_next %}
     <a
       href="{{ url_for('activeusers', page=pagination.next_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
-      >Next</a
+      class="btn btn-secondary"
     >
+      Next
+    </a>
     {% endif %}
   </div>
 </div>
