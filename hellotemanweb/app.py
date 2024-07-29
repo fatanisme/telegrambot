@@ -287,12 +287,17 @@ def chats():
 
 @app.route('/view_photos')
 @login_required
+@app.route('/view_photos')
+@login_required
 def view_photos():
     page = int(request.args.get('page', 1))
     per_page = 10
     bot_token = HELLOTEMAN_BOT_TOKEN
 
+    # Cari semua dokumen yang memiliki pesan dengan tipe 'photo'
     chats = chats_collection.find({ "messages.message_type": "photo" })
+
+    # Ekstrak data foto dari dokumen chat
     photos = []
     for chat in chats:
         for message in chat.get('messages', []):
@@ -311,14 +316,27 @@ def view_photos():
                     photo_url = None
                     print(f"Error fetching photo URL: {e}")
 
+                # Pastikan timestamp adalah objek datetime
+                if isinstance(timestamp, str):
+                    try:
+                        timestamp = datetime.fromisoformat(timestamp)
+                    except ValueError:
+                        try:
+                            timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            timestamp = None
+
                 photos.append({
                     'chatroom_id': chatroom_id,
                     'sender_id': sender_id,
                     'photo_url': photo_url,
                     'timestamp': timestamp
                 })
-                
-     # Urutkan foto berdasarkan timestamp dari yang terbaru ke yang terlama
+
+    # Filter foto dengan timestamp yang valid
+    photos = [photo for photo in photos if photo['timestamp'] is not None]
+
+    # Urutkan foto berdasarkan timestamp dari yang terbaru ke yang terlama
     photos = sorted(photos, key=lambda x: x['timestamp'], reverse=True)
 
     # Paginasi
