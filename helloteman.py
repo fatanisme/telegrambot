@@ -62,6 +62,7 @@ def save_user_to_mongodb(user_id, **kwargs):
 # Daftar untuk menyimpan user
 users = []
 user_settings = {}
+user_pairs = {}
 
 def load_user_pairs_from_mongodb():
     global user_pairs
@@ -388,7 +389,7 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    active_user_count = len(users)
+    active_user_count = len(user_pairs)
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
