@@ -164,17 +164,23 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
         await query.edit_message_text('Silakan kirimkan umur Anda:')
     elif query.data == 'update_gender':
         user_settings[user_id] = 'waiting_for_gender'
-        keyboard = [
-            [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
-            [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text('Silakan pilih jenis kelamin Anda:', reply_markup=reply_markup)
+        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
     elif query.data == 'update_city':
         user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
+
+async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'pria':
+        user_settings[user_id] = 'waiting_for_pria'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+    elif query.data == 'wanita':
+        user_settings[user_id] = 'waiting_for_wanita'
+        await query.edit_message_text('Silakan masukan nama Anda:')
         
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -390,34 +396,14 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Ambil semua user_id dan partner_id dari koleksi user_pairs
-    user_pairs = user_pairs_collection.find({}, {"user_id": 1, "partner_id": 1})
-
-    # Inisialisasi set untuk menyimpan user_id dan partner_id
-    user_ids = set()
-    partner_ids = set()
-
-    for pair in user_pairs:
-        user_ids.add(pair["user_id"])
-        partner_ids.add(pair["partner_id"])
-
-    # Filter user_ids agar tidak ada di partner_ids
-    active_user_ids = user_ids - partner_ids
-
-    active_user_count = len(active_user_ids)
+    active_user_count = len(users)
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
-    # Ambil informasi pengguna aktif dari database
-    active_users = []
-    for user_id in active_user_ids:
-        user = db.users.find_one({"user_id": user_id})
-        if user:
-            full_name = user.get("full_name", "Tidak diketahui")
-            active_users.append(f"ID: {user_id}, Nama Lengkap: {full_name}")
-
-    active_user_list = "\n".join(active_users)
+    # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
+    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in users]
+    active_user_list = "\n".join(active_user_info)
 
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
     response_message = (
@@ -507,6 +493,7 @@ def main():
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
     application.add_handler(CallbackQueryHandler(settings_button_handler))
+    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
 
     application.run_polling()
