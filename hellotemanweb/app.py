@@ -287,8 +287,6 @@ def chats():
 
 @app.route('/view_photos')
 @login_required
-@app.route('/view_photos')
-@login_required
 def view_photos():
     page = int(request.args.get('page', 1))
     per_page = 10
