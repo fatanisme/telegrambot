@@ -317,7 +317,11 @@ def view_photos():
                     'photo_url': photo_url,
                     'timestamp': timestamp
                 })
+                
+     # Urutkan foto berdasarkan timestamp dari yang terbaru ke yang terlama
+    photos = sorted(photos, key=lambda x: x['timestamp'], reverse=True)
 
+    # Paginasi
     total_photos = len(photos)
     total_pages = ceil(total_photos / per_page)
     start = (page - 1) * per_page
