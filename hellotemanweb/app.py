@@ -18,6 +18,7 @@ app.secret_key = 'your_secret_key'
 client = MongoClient('mongodb://localhost:27017/')
 db = client['helloteman_db']
 users_collection = db['users']
+users_pairs_collection = db['user_pairs']
 chats_collection = db['chats']
 
 # Konfigurasi Flask-Login
