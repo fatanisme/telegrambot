@@ -114,11 +114,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
     
     start_message = (
-        "Selamat datang di Anonymous Chat!\n\n"
+        "Selamat datang di Anonymous Chat Hello Teman!\n\n"
         "Coba perintah berikut untuk memastikan bot berfungsi:\n"
-        "/join - Untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
-        "/leave - Untuk keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
-        "/help - Memulai bot dan menerima pesan sambutan.\n"
+        "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
+        "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
+        "/help - Melihat daftar perintah dan bantuan.\n"
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
@@ -136,6 +137,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
         "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
         "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
         "/help - Melihat daftar perintah dan bantuan.\n"
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
@@ -153,8 +155,6 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Pilih pengaturan yang ingin diubah:', reply_markup=reply_markup)
 
-
-
 async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     user_id = query.from_user.id
@@ -164,23 +164,17 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
         await query.edit_message_text('Silakan kirimkan umur Anda:')
     elif query.data == 'update_gender':
         user_settings[user_id] = 'waiting_for_gender'
-        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
+        keyboard = [
+            [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
+            [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text('Silakan pilih jenis kelamin Anda:', reply_markup=reply_markup)
     elif query.data == 'update_city':
         user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
-
-async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user_id = query.from_user.id
-
-    if query.data == 'pria':
-        user_settings[user_id] = 'waiting_for_pria'
-        await query.edit_message_text('Silakan masukan nama Anda:')
-    elif query.data == 'wanita':
-        user_settings[user_id] = 'waiting_for_wanita'
-        await query.edit_message_text('Silakan masukan nama Anda:')
         
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -220,10 +214,10 @@ async def start_chat(update: Update, context: CallbackContext) -> None:
         )
 
         await context.bot.send_message(chat_id=partner_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
-                                       "Gunakan perintah /next untuk mengganti pasangan.\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
                                        "Gunakan perintah /leave untuk keluar dari obrolan.\n")
         await context.bot.send_message(chat_id=user_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
-                                       "Gunakan perintah /next untuk mengganti pasangan.\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
                                        "Gunakan perintah /leave untuk keluar dari obrolan.\n")
     else:
         await context.bot.send_message(chat_id=user_id, text='Harap Tunggu Sebentar....')
