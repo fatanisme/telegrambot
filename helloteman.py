@@ -472,6 +472,7 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("join", join))
+    application.add_handler(CommandHandler("next", next))
     application.add_handler(CommandHandler("chat", chat))
     application.add_handler(CommandHandler("leave", leave))
     application.add_handler(CommandHandler("activeusers", active_users))
