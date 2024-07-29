@@ -107,7 +107,52 @@ def users():
     }
 
     return render_template('users.html', users=users, pagination=pagination)
+
+@app.route('/activeusers')
+@login_required
+def activeusers():
+    user_id_filter = request.args.get('user_id', '')
+    username_filter = request.args.get('username', '')
+    first_name_filter = request.args.get('first_name', '')
+    full_name_filter = request.args.get('full_name', '')
+    page = int(request.args.get('page', 1))
+    per_page = 30
+
+    # Ambil data user_ids dari koleksi user_pairs
+    user_ids = list(user_pairs_collection.find({}, {'user_id': 1, '_id': 0}))
+
+    user_ids = [user['user_id'] for user in user_ids]
+
+    # Query untuk mengambil detail pengguna dari koleksi users berdasarkan user_ids
+    query = {'user_id': {'$in': user_ids}}
+    if user_id_filter:
+        query['user_id'] = user_id_filter
+    if username_filter:
+        query['username'] = username_filter
+    if first_name_filter:
+        query['first_name'] = first_name_filter
+    if full_name_filter:
+        query['full_name'] = full_name_filter
+
+    users = list(users_collection.find(query).skip((page - 1) * per_page).limit(per_page))
+    total_users = users_collection.count_documents(query)
+    total_pages = ceil(total_users / per_page)
+
+    pagination = {
+        'page': page,
+        'total': total_users,
+        'pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_num': page - 1,
+        'next_num': page + 1,
+        'per_page': per_page
+    }
+
+    return render_template('activeusers.html', users=users, pagination=pagination)
+
 @app.route('/chatrooms')
+@login_required
 def chatrooms():
     page = request.args.get('page', 1, type=int)
     sort_by = request.args.get('sort_by', 'message_count')

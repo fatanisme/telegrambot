@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Active Users</title>
+    <!-- Tambahkan link ke CSS atau library lain jika diperlukan -->
+  </head>
+  <body>
+    <h1>Active Users</h1>
+
+    <form method="get" action="{{ url_for('activeusers') }}">
+      <input
+        type="text"
+        name="user_id"
+        placeholder="User ID"
+        value="{{ request.args.get('user_id', '') }}"
+      />
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        value="{{ request.args.get('username', '') }}"
+      />
+      <input
+        type="text"
+        name="first_name"
+        placeholder="First Name"
+        value="{{ request.args.get('first_name', '') }}"
+      />
+      <input
+        type="text"
+        name="full_name"
+        placeholder="Full Name"
+        value="{{ request.args.get('full_name', '') }}"
+      />
+      <button type="submit">Filter</button>
+    </form>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>User ID</th>
+          <th>Username</th>
+          <th>First Name</th>
+          <th>Full Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>
+            {{ loop.index + (pagination.page - 1) * pagination.per_page }}
+          </td>
+          <td>{{ user.get('user_id', '') }}</td>
+          <td>{{ user.get('username', '') }}</td>
+          <td>{{ user.get('first_name', '') }}</td>
+          <td>{{ user.get('full_name', '') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div>
+      {% if pagination.has_prev %}
+      <a
+        href="{{ url_for('activeusers', page=pagination.prev_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
+        >Previous</a
+      >
+      {% endif %}
+      <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+      <a
+        href="{{ url_for('activeusers', page=pagination.next_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
+        >Next</a
+      >
+      {% endif %}
+    </div>
+  </body>
+</html>
