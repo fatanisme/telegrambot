@@ -62,7 +62,6 @@ def save_user_to_mongodb(user_id, **kwargs):
 # Daftar untuk menyimpan user
 users = []
 user_settings = {}
-user_pairs = {}
 
 def load_user_pairs_from_mongodb():
     global user_pairs
