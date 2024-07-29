@@ -486,7 +486,6 @@ def main():
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
     application.add_handler(CallbackQueryHandler(settings_button_handler))
-    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
 
     application.run_polling()
