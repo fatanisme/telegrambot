@@ -62,6 +62,7 @@ def save_user_to_mongodb(user_id, **kwargs):
 # Daftar untuk menyimpan user
 users = []
 user_settings = {}
+user_pairs = {}
 
 def load_user_pairs_from_mongodb():
     global user_pairs
@@ -74,7 +75,8 @@ def load_user_pairs_from_mongodb():
         if user_id and partner_id:
             user_pairs[user_id] = partner_id
             user_pairs[partner_id] = user_id
-            
+load_user_pairs_from_mongodb()            
+
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("👽👽👽 CEK KHODAM 👽👽👽", callback_data='check_khodam')],
@@ -388,14 +390,13 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    active_user_count = len(user_pairs)
-    
+    active_user_count = len(users)
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
     # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
-    active_user_info = [f"ID: {user.user_id}" for user in user_pairs]
+    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in users]
     active_user_list = "\n".join(active_user_info)
 
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
@@ -467,8 +468,7 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main():
     application = ApplicationBuilder().token(HELLOTEMAN_BOT_TOKEN).build()
-    
-    load_user_pairs_from_mongodb()            
+
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("join", join))
