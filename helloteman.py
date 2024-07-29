@@ -396,14 +396,34 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    active_user_count = len(users)
+    # Ambil semua user_id dan partner_id dari koleksi user_pairs
+    user_pairs = user_pairs_collection.find({}, {"user_id": 1, "partner_id": 1})
+
+    # Inisialisasi set untuk menyimpan user_id dan partner_id
+    user_ids = set()
+    partner_ids = set()
+
+    for pair in user_pairs:
+        user_ids.add(pair["user_id"])
+        partner_ids.add(pair["partner_id"])
+
+    # Filter user_ids agar tidak ada di partner_ids
+    active_user_ids = user_ids - partner_ids
+
+    active_user_count = len(active_user_ids)
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
-    # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
-    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in users]
-    active_user_list = "\n".join(active_user_info)
+    # Ambil informasi pengguna aktif dari database
+    active_users = []
+    for user_id in active_user_ids:
+        user = users_collection.find_one({"user_id": user_id})
+        if user:
+            full_name = user.get("full_name", "Tidak diketahui")
+            active_users.append(f"ID: {user_id}, Nama Lengkap: {full_name}")
+
+    active_user_list = "\n".join(active_users)
 
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
     response_message = (
@@ -411,7 +431,7 @@ async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"Daftar pengguna aktif:\n{active_user_list}"
     )
     await update.message.reply_text(response_message)
-
+    
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
     if message:
