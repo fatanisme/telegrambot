@@ -92,7 +92,7 @@ def users():
     city = request.args.get('city', '')
     age = request.args.get('age', '')
     page = int(request.args.get('page', 1))
-    per_page = 10
+    per_page = 30
 
     query = {}
     if user_id:
