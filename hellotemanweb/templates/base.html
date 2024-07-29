@@ -3,77 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{% endblock %}</title>
-    <style>
-      /* Styling umum */
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-      }
-      nav {
-        padding: 10px;
-        background-color: #f4f4f4;
-      }
-      nav a {
-        margin: 0 10px;
-        text-decoration: none;
-        color: #333;
-      }
-
-      /* Table Styling */
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      table,
-      th,
-      td {
-        border: 1px solid #ddd;
-      }
-      th,
-      td {
-        padding: 10px;
-        text-align: left;
-      }
-
-      /* Image Styling */
-      img {
-        max-width: 100px;
-        height: auto;
-      }
-
-      /* Responsive Styling */
-      @media (max-width: 768px) {
-        nav {
-          text-align: center;
-        }
-        nav a {
-          display: block;
-          margin: 5px 0;
-        }
-      }
-
-      @media (max-width: 480px) {
-        table {
-          font-size: 12px;
-        }
-        th,
-        td {
-          padding: 8px;
-        }
-      }
-    </style>
+    <title>{% block title %}My Application{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
   </head>
   <body>
-    <nav>
-      <a href="/">Dashboard</a> | <a href="/users">Users</a> |
-      <a href="/chats">Chats</a> | <a href="/chatrooms">Chatrooms</a> |
-      <a href="/view_photos">View Photos</a> |
-      <a href="/activeusers">Activeusers</a> |
-      <a href="/logout">Logout</a>
-    </nav>
-    <hr />
-    {% block content %}{% endblock %}
+    <header>
+      <nav>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('users') }}">Users</a>
+        <a href="{{ url_for('chatrooms') }}">Chatrooms</a>
+        <a href="{{ url_for('activeusers') }}">Active Users</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </nav>
+    </header>
+    <main>
+      {% block content %}
+      <!-- Page-specific content will be injected here -->
+      {% endblock %}
+    </main>
+    <footer>
+      <p>&copy; 2024 My Application</p>
+    </footer>
   </body>
 </html>

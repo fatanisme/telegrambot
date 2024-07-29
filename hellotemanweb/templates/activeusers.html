@@ -1,211 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Active Users</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-      }
-      .container {
-        width: 90%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-      h1 {
-        margin-bottom: 20px;
-        font-size: 24px;
-        color: #333;
-      }
-      .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-      }
-      .form-group {
-        flex: 1;
-        min-width: 200px;
-        margin-right: 20px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 5px;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      .btn {
-        padding: 10px 15px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-align: center;
-        display: inline-block;
-        text-decoration: none;
-      }
-      .btn:hover {
-        background-color: #0056b3;
-      }
-      .table-responsive {
-        overflow-x: auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-      }
-      th,
-      td {
-        padding: 10px;
-        border: 1px solid #ddd;
-        text-align: left;
-      }
-      th {
-        background-color: #f4f4f4;
-      }
-      tr:nth-child(even) {
-        background-color: #f9f9f9;
-      }
-      .pagination {
-        display: flex;
-        justify-content: center;
-        list-style: none;
-        padding: 0;
-      }
-      .pagination li {
-        margin: 0 5px;
-      }
-      .pagination a,
-      .pagination span {
-        display: inline-block;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        text-decoration: none;
-        color: #007bff;
-      }
-      .pagination a:hover {
-        background-color: #e9ecef;
-      }
-      .pagination .disabled span {
-        color: #6c757d;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Active Users</h1>
+{% extends "base.html" %} {% block title %}Active Users{% endblock %} {% block
+content %}
+<div class="container">
+  <h1>Active Users</h1>
 
-      <!-- Filter Form -->
-      <form method="get" action="{{ url_for('activeusers') }}">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="user_id">User ID</label>
-            <input
-              type="text"
-              id="user_id"
-              name="user_id"
-              placeholder="User ID"
-              value="{{ request.args.get('user_id', '') }}"
-            />
-          </div>
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Username"
-              value="{{ request.args.get('username', '') }}"
-            />
-          </div>
-          <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              placeholder="First Name"
-              value="{{ request.args.get('first_name', '') }}"
-            />
-          </div>
-          <div class="form-group">
-            <label for="full_name">Full Name</label>
-            <input
-              type="text"
-              id="full_name"
-              name="full_name"
-              placeholder="Full Name"
-              value="{{ request.args.get('full_name', '') }}"
-            />
-          </div>
-        </div>
-        <button type="submit" class="btn">Filter</button>
-      </form>
-
-      <!-- Table -->
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>User ID</th>
-              <th>Username</th>
-              <th>First Name</th>
-              <th>Full Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for user in users %}
-            <tr>
-              <td>
-                {{ loop.index + (pagination.page - 1) * pagination.per_page }}
-              </td>
-              <td>{{ user.get('user_id', '') }}</td>
-              <td>{{ user.get('username', '') }}</td>
-              <td>{{ user.get('first_name', '') }}</td>
-              <td>{{ user.get('full_name', '') }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <ul class="pagination">
-        {% if pagination.has_prev %}
-        <li>
-          <a
-            href="{{ url_for('activeusers', page=pagination.prev_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
-            >Previous</a
-          >
-        </li>
-        {% endif %}
-        <li class="disabled">
-          <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        </li>
-        {% if pagination.has_next %}
-        <li>
-          <a
-            href="{{ url_for('activeusers', page=pagination.next_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
-            >Next</a
-          >
-        </li>
-        {% endif %}
-      </ul>
+  <form method="get" action="{{ url_for('activeusers') }}" class="form-row">
+    <div class="form-group">
+      <label for="user_id">User ID:</label>
+      <input
+        type="text"
+        id="user_id"
+        name="user_id"
+        value="{{ request.args.get('user_id', '') }}"
+      />
     </div>
-  </body>
-</html>
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        value="{{ request.args.get('username', '') }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="first_name">First Name:</label>
+      <input
+        type="text"
+        id="first_name"
+        name="first_name"
+        value="{{ request.args.get('first_name', '') }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="full_name">Full Name:</label>
+      <input
+        type="text"
+        id="full_name"
+        name="full_name"
+        value="{{ request.args.get('full_name', '') }}"
+      />
+    </div>
+    <div class="form-group">
+      <button type="submit">Filter</button>
+    </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>User ID</th>
+        <th>Username</th>
+        <th>First Name</th>
+        <th>Full Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in active_users %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ user.user_id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.first_name }}</td>
+        <td>{{ user.full_name }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if pagination.has_prev %}
+    <a
+      href="{{ url_for('activeusers', page=pagination.prev_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
+      >Previous</a
+    >
+    {% endif %} {% if pagination.has_next %}
+    <a
+      href="{{ url_for('activeusers', page=pagination.next_num, user_id=request.args.get('user_id', ''), username=request.args.get('username', ''), first_name=request.args.get('first_name', ''), full_name=request.args.get('full_name', '')) }}"
+      >Next</a
+    >
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
