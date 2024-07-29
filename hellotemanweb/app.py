@@ -237,12 +237,20 @@ def chatrooms():
 
 # Rute lainnya...
 
-# Filter template untuk memformat tanggal
 @app.template_filter('dateformat')
 def dateformat(value, format='%Y-%m-%d'):
     if value is None:
         return ""
-    return value.strftime(format)
+    if isinstance(value, str):
+        try:
+            # Coba mengonversi string ke objek datetime
+            value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            # Jika gagal mengonversi, anggap string sudah dalam format yang benar
+            pass
+    if isinstance(value, datetime):
+        return value.strftime(format)
+    return value  # Jika bukan objek datetime, kembalikan nilai asli
 
 @app.route('/chats')
 @login_required
