@@ -75,8 +75,7 @@ def load_user_pairs_from_mongodb():
         if user_id and partner_id:
             user_pairs[user_id] = partner_id
             user_pairs[partner_id] = user_id
-load_user_pairs_from_mongodb()            
-
+            
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("👽👽👽 CEK KHODAM 👽👽👽", callback_data='check_khodam')],
@@ -468,7 +467,8 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main():
     application = ApplicationBuilder().token(HELLOTEMAN_BOT_TOKEN).build()
-
+    
+    load_user_pairs_from_mongodb()            
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("join", join))
