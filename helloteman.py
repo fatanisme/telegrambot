@@ -408,7 +408,7 @@ async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         partner_ids.add(pair["partner_id"])
 
     # Filter user_ids agar tidak ada di partner_ids
-    active_user_ids = user_ids - partner_ids
+    active_user_ids = user_ids
 
     active_user_count = len(active_user_ids)
     if active_user_count == 0:
