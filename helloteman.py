@@ -389,12 +389,13 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     active_user_count = len(user_pairs)
+    
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
     # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
-    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in user_pairs]
+    active_user_info = [f"ID: {user.user_id}" for user in user_pairs]
     active_user_list = "\n".join(active_user_info)
 
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
