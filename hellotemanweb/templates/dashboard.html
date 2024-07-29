@@ -1,7 +1,27 @@
 {% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
-<h1>Dashboard</h1>
-<button onclick="location.href='/users'">Users</button>
-<button onclick="location.href='/chats'">Chats</button>
-<button onclick="location.href='/view_photos'">View Photos</button>
+<div class="container mt-4">
+  <h1 class="mb-4">Dashboard</h1>
+
+  <!-- Statistik Widget -->
+  <div class="row">
+    <div class="col-md-6 col-lg-3 mb-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <h5 class="card-title">Active Users</h5>
+          <p class="card-text display-4">{{ active_users_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+      <div class="card text-white bg-secondary">
+        <div class="card-body">
+          <h5 class="card-title">Total Users</h5>
+          <p class="card-text display-4">{{ total_users_count }}</p>
+        </div>
+      </div>
+    </div>
+    <!-- Add more widgets if needed -->
+  </div>
+</div>
 {% endblock %}

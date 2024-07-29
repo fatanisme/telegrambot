@@ -1,50 +1,75 @@
 {% extends "base.html" %} {% block title %}Chatrooms{% endblock %} {% block
 content %}
-<h2>Chatrooms</h2>
-<table>
-  <thead>
-    <tr>
-      <th>Chatroom ID</th>
-      <th>
-        <a
-          href="{{ url_for('chatrooms', page=page, sort_by='message_count', order='asc' if sort_by == 'message_count' and order == 'desc' else 'desc') }}"
-        >
-          Jumlah Pesan
-        </a>
-      </th>
-      <th>
-        <a
-          href="{{ url_for('chatrooms', page=page, sort_by='last_update', order='asc' if sort_by == 'last_update' and order == 'desc' else 'desc') }}"
-        >
-          Terakhir Update
-        </a>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for chatroom in chatrooms %}
-    <tr>
-      <td>{{ chatroom._id }}</td>
-      <td>{{ chatroom.message_count }}</td>
-      <td>{{ chatroom.last_update | dateformat }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="container mt-4">
+  <h2 class="mb-4">Chatrooms</h2>
 
-<div>
-  {% if page > 1 %}
-  <a
-    href="{{ url_for('chatrooms', page=page - 1, sort_by=sort_by, order=order) }}"
-    >Previous</a
-  >
-  {% endif %}
-  <span>Page {{ page }} of {{ total_pages }}</span>
-  {% if page < total_pages %}
-  <a
-    href="{{ url_for('chatrooms', page=page + 1, sort_by=sort_by, order=order) }}"
-    >Next</a
-  >
-  {% endif %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Chatroom ID</th>
+        <th>
+          <a
+            href="{{ url_for('chatrooms', page=page, sort_by='message_count', order='asc' if sort_by == 'message_count' and order == 'desc' else 'desc') }}"
+            class="text-decoration-none"
+          >
+            Jumlah Pesan {% if sort_by == 'message_count' %}
+            <span class="badge bg-secondary"
+              >{{ 'Ascending' if order == 'asc' else 'Descending' }}</span
+            >
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a
+            href="{{ url_for('chatrooms', page=page, sort_by='last_update', order='asc' if sort_by == 'last_update' and order == 'desc' else 'desc') }}"
+            class="text-decoration-none"
+          >
+            Terakhir Update {% if sort_by == 'last_update' %}
+            <span class="badge bg-secondary"
+              >{{ 'Ascending' if order == 'asc' else 'Descending' }}</span
+            >
+            {% endif %}
+          </a>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for chatroom in chatrooms %}
+      <tr>
+        <td>{{ chatroom._id }}</td>
+        <td>{{ chatroom.message_count }}</td>
+        <td>{{ chatroom.last_update | dateformat }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination">
+      {% if page > 1 %}
+      <li class="page-item">
+        <a
+          class="page-link"
+          href="{{ url_for('chatrooms', page=page - 1, sort_by=sort_by, order=order) }}"
+        >
+          Previous
+        </a>
+      </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+      </li>
+      {% if page < total_pages %}
+      <li class="page-item">
+        <a
+          class="page-link"
+          href="{{ url_for('chatrooms', page=page + 1, sort_by=sort_by, order=order) }}"
+        >
+          Next
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
 </div>
 {% endblock %}

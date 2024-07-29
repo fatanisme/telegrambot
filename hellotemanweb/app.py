@@ -65,10 +65,23 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+def get_active_users_count():
+    # Menghitung jumlah dokumen di koleksi `user_pairs`
+    return db.user_pairs.count_documents({})  # Menghitung semua dokumen di koleksi `user_pairs`
+
+def get_total_users_count():
+    # Menghitung jumlah dokumen di koleksi `users` untuk mendapatkan total pengguna
+    return db.users.count_documents({})  # Menghitung semua dokumen di koleksi `users`
+
 @app.route('/')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    active_users_count = get_active_users_count()
+    total_users_count = get_total_users_count()
+    
+    return render_template('dashboard.html', 
+                           active_users_count=active_users_count, 
+                           total_users_count=total_users_count)
 
 @app.route('/users')
 @login_required

@@ -3,84 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{% endblock %}</title>
-    <style>
-      /* Contoh CSS untuk responsivitas */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .table th,
-      .table td {
-        padding: 8px;
-        text-align: left;
-      }
-
-      .table th {
-        background-color: #f2f2f2;
-      }
-
-      .form-row {
-        margin-bottom: 20px;
-      }
-
-      .form-group {
-        margin-bottom: 15px;
-      }
-
-      .form-control {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-
-      .btn {
-        padding: 10px 15px;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      .btn-primary {
-        background-color: #007bff;
-      }
-
-      .btn-secondary {
-        background-color: #6c757d;
-      }
-
-      .pagination {
-        margin-top: 20px;
-      }
-
-      .pagination a {
-        padding: 10px;
-        color: #007bff;
-        text-decoration: none;
-      }
-
-      .pagination a.btn-secondary {
-        background-color: #6c757d;
-      }
-    </style>
+    <title>{% block title %}My Application{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS (optional) -->
+    <link
+      href="{{ url_for('static', filename='styles.css') }}"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <nav>
-      <a href="/">Dashboard</a> | <a href="/users">Users</a> |
-      <a href="/chats">Chats</a> | <a href="/chatrooms">Chatrooms</a> |
-      <a href="/view_photos">View Photos</a> |
-      <a href="/activeusers">Activeusers</a> |
-      <a href="/logout">Logout</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="{{ url_for('dashboard') }}"
+        >My Application</a
+      >
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('users') }}">Users</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('chats') }}">Chats</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('chatrooms') }}">Chatrooms</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('view_photos') }}"
+              >View Photos</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('activeusers') }}"
+              >Active Users</a
+            >
+          </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+          {% if current_user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
     </nav>
-    <hr />
-    {% block content %}{% endblock %}
+
+    <div class="container mt-4">
+      {% block content %}
+      <!-- Content will be injected here -->
+      {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>

@@ -1,33 +1,60 @@
 {% extends "base.html" %} {% block title %}Chats{% endblock %} {% block content
 %}
-<h1>Chats</h1>
-<form method="get">
-  <input type="text" name="chatroom_id" placeholder="Chatroom ID" />
-  <input type="text" name="timestamp" placeholder="Timestamp (yyyy-mm-dd)" />
-  <button type="submit">Search</button>
-</form>
-<table>
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Sender ID</th>
-      <th>Message Type</th>
-      <th>Message</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for chat in chats %}
-    <tr>
-      <td>{{ loop.index }}</td>
-      <td>{{ chat.sender_id }}</td>
-      <td>{{ chat.message_type }}</td>
-      <td>
-        {% if chat.message_type == 'photo' %}
-        <img src="{{ chat.message }}" alt="Photo" />
-        {% else %} {{ chat.message }} {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="container mt-4">
+  <h1 class="mb-4">Chats</h1>
+
+  <form method="get" class="mb-4">
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <input
+          type="text"
+          name="chatroom_id"
+          placeholder="Chatroom ID"
+          class="form-control"
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <input
+          type="text"
+          name="timestamp"
+          placeholder="Timestamp (yyyy-mm-dd)"
+          class="form-control"
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Sender ID</th>
+        <th>Message Type</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for chat in chats %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ chat.sender_id }}</td>
+        <td>{{ chat.message_type }}</td>
+        <td>
+          {% if chat.message_type == 'photo' %}
+          <img
+            src="{{ chat.message }}"
+            alt="Photo"
+            class="img-fluid"
+            style="max-width: 200px"
+          />
+          {% else %} {{ chat.message }} {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

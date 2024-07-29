@@ -1,34 +1,56 @@
 {% extends "base.html" %} {% block title %}View Photos{% endblock %} {% block
 content %}
-<h1>View Photos</h1>
-<table>
-  <thead>
-    <tr>
-      <th>Chatroom ID</th>
-      <th>Sender ID</th>
-      <th>Photo</th>
-      <th>Timestamp</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for photo in photos %}
-    <tr>
-      <td>{{ photo.chatroom_id }}</td>
-      <td>{{ photo.sender_id }}</td>
-      <td><img src="{{ photo.photo_url }}" alt="Photo" /></td>
-      <td>{{ photo.timestamp }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% if pagination %}
-<div>
-  {% if pagination.has_prev %}
-  <a href="?page={{ pagination.prev_num }}">Previous</a>
-  {% endif %}
-  <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
-  {% if pagination.has_next %}
-  <a href="?page={{ pagination.next_num }}">Next</a>
+<div class="container mt-4">
+  <h1 class="mb-4">View Photos</h1>
+
+  {% if photos %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Chatroom ID</th>
+        <th>Sender ID</th>
+        <th>Photo</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for photo in photos %}
+      <tr>
+        <td>{{ photo.chatroom_id }}</td>
+        <td>{{ photo.sender_id }}</td>
+        <td>
+          <img
+            src="{{ photo.photo_url }}"
+            alt="Photo"
+            class="img-fluid"
+            style="max-height: 200px"
+          />
+        </td>
+        <td>{{ photo.timestamp | dateformat('%Y-%m-%d %H:%M:%S') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="d-flex justify-content-between">
+    {% if pagination.has_prev %}
+    <a
+      href="{{ url_for('view_photos', page=pagination.prev_num) }}"
+      class="btn btn-primary"
+      >Previous</a
+    >
+    {% endif %}
+    <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a
+      href="{{ url_for('view_photos', page=pagination.next_num) }}"
+      class="btn btn-primary"
+      >Next</a
+    >
+    {% endif %}
+  </div>
+  {% else %}
+  <p>No photos available.</p>
   {% endif %}
 </div>
-{% endif %} {% endblock %}
+{% endblock %}
