@@ -116,10 +116,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     start_message = (
         "Selamat datang di Anonymous Chat!\n\n"
         "Coba perintah berikut untuk memastikan bot berfungsi:\n"
-        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/join - Untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
         "/leave - Untuk keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
         "/help - Memulai bot dan menerima pesan sambutan.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
     await update.message.reply_text(start_message)
@@ -135,10 +135,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
-        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
         "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
-        "/help - Memulai bot dan menerima pesan sambutan.\n"
+        "/help - Melihat daftar perintah dan bantuan.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
     await update.message.reply_text(help_message)
@@ -219,8 +219,12 @@ async def start_chat(update: Update, context: CallbackContext) -> None:
             upsert=True
         )
 
-        await context.bot.send_message(chat_id=partner_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!")
-        await context.bot.send_message(chat_id=user_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!")
+        await context.bot.send_message(chat_id=partner_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan.\n"
+                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
+        await context.bot.send_message(chat_id=user_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan.\n"
+                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
     else:
         await context.bot.send_message(chat_id=user_id, text='Harap Tunggu Sebentar....')
 
@@ -241,6 +245,16 @@ async def leave(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text('Anda belum bergabung dalam pool chat.\n\n'
                                         "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
 
+async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.message.from_user
+    user_id = user.id
+
+    # Panggil fungsi leave untuk keluar dari chat saat ini
+    await leave(update, context)
+
+    # Panggil fungsi join untuk mencari pasangan baru
+    await join(update, context)
+    
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     if user.id in [u.id for u in users]:
