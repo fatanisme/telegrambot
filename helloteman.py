@@ -415,20 +415,9 @@ async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
-    # Ambil informasi pengguna aktif dari database
-    active_users = []
-    for user_id in active_user_ids:
-        user = users_collection.find_one({"user_id": user_id})
-        if user:
-            full_name = user.get("full_name", "Tidak diketahui")
-            active_users.append(f"ID: {user_id}, Nama Lengkap: {full_name}")
-
-    active_user_list = "\n".join(active_users)
-
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
     response_message = (
         f"Jumlah pengguna aktif saat ini: {active_user_count}\n\n"
-        f"Daftar pengguna aktif:\n{active_user_list}"
     )
     await update.message.reply_text(response_message)
     
