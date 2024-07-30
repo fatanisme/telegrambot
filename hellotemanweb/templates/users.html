@@ -103,7 +103,7 @@
         <td>{{ user.city }}</td>
         <td>{{ user.age }}</td>
         <td>{{ user.report_count }}</td>
-        <td>{{ user.banned_until }}</td>
+        <td>{{ user.banned_until | dateformat('%Y-%m-%d %H:%M:%S') }}</td>
       </tr>
       {% endfor %}
     </tbody>
