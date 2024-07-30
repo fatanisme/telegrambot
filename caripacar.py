@@ -2,7 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
 from bottokens import CARIPACAR_BOT_TOKEN
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 
 # Inisialisasi koneksi ke MongoDB
@@ -63,7 +63,7 @@ async def check_ban_status(user_id: int) -> bool:
     user = users_collection.find_one({"user_id": user_id})
     if user and 'banned_until' in user:
         banned_until = user['banned_until']
-        if datetime.datetime.now() > banned_until:
+        if datetime.now() > banned_until:
             # Remove ban info if the ban duration has passed
             users_collection.update_one(
                 {"user_id": user_id},
@@ -74,7 +74,7 @@ async def check_ban_status(user_id: int) -> bool:
     return False
 
 async def update_ban_status(user_id: int, ban_duration: int) -> None:
-    banned_until = datetime.datetime.now() + datetime.timedelta(days=ban_duration)
+    banned_until = datetime.now() + timedelta(days=ban_duration)
     users_collection.update_one(
         {"user_id": user_id},
         {"$set": {"banned_until": banned_until}}
