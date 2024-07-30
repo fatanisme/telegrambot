@@ -287,7 +287,7 @@ def chats():
         for chat in chats_data:
             for message in chat.get('messages', []):
                 if message.get('message_type') in ['text', 'sticker', 'animation', 'document', 'photo', 'video', 'voice']:
-                    if message.get('message_type') == 'photo':
+                    if message.get('message_type') != 'photo':
                         file_id = message.get('message')
                         try:
                             message['message'] = get_telegram_file_url(HELLOTEMAN_BOT_TOKEN, file_id)
@@ -316,7 +316,7 @@ def view_photos():
     photos = []
     for chat in chats:
         for message in chat.get('messages', []):
-            if message.get('message_type') == 'photo':
+            if message.get('message_type') != 'photo':
                 sender_id = message.get('sender_id')
                 chatroom_id = chat.get('chatroom_id')
                 file_id = message.get('message')
