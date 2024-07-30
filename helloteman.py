@@ -105,6 +105,8 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             ban_duration = 7  # 7 hari
         elif report_count >= 20:
             ban_duration = 3  # 3 hari
+        elif report_count >= 10:
+            ban_duration = 1  # 3 hari    
         
         if ban_duration > 0:
             await update_ban_status(reported_user_id, ban_duration)
