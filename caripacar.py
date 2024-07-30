@@ -84,6 +84,8 @@ async def report_button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     user_id = query.from_user.id
 
+    # Ambil ID pengguna yang dilaporkan dari data callback
+    reported_user_id = int(query.data.split('_')[1])
     
     # Tambah jumlah laporan untuk pengguna yang dilaporkan
     user = users_collection.find_one({"user_id": reported_user_id})
