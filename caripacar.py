@@ -82,9 +82,7 @@ async def update_ban_status(user_id: int, ban_duration: int) -> None:
 
 async def report_button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    user_id = query.from_user.id
-    
-    
+        
     # Ambil ID pengguna yang dilaporkan dari data callback
     reported_user_id = int(query.data.split('_')[1])
     
