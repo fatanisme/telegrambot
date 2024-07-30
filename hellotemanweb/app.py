@@ -96,13 +96,13 @@ def users():
 
     query = {}
     if user_id:
-        query['user_id'] = user_id
+        query['user_id'] = {'$regex': user_id, '$options': 'i'}  # Case-insensitive regex search
     if username:
-        query['username'] = username
+        query['username'] = {'$regex': username, '$options': 'i'}
     if gender:
         query['gender'] = gender
     if city:
-        query['city'] = city
+        query['city'] = {'$regex': city, '$options': 'i'}
     if age:
         query['age'] = age
 
