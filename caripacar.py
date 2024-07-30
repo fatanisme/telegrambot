@@ -83,16 +83,13 @@ async def update_ban_status(user_id: int, ban_duration: int) -> None:
 async def report_button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     user_id = query.from_user.id
-
-    # Ambil ID pengguna yang dilaporkan dari data callback
-    reported_user_id = int(query.data.split('_')[1])
     
     # Tambah jumlah laporan untuk pengguna yang dilaporkan
-    user = users_collection.find_one({"user_id": reported_user_id})
+    user = users_collection.find_one({"user_id": user_id})
     if user:
         report_count = user.get('report_count', 0) + 1
         users_collection.update_one(
-            {"user_id": reported_user_id},
+            {"user_id": user_id},
             {"$set": {"report_count": report_count}}
         )
         
