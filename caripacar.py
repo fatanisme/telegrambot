@@ -97,6 +97,19 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             {"$set": {"report_count": report_count}}
         )
         
+        # Tentukan durasi banned berdasarkan jumlah laporan
+        ban_duration = 0
+        if report_count >= 80:
+            ban_duration = float('inf')  # banned selamanya
+        elif report_count >= 50:
+            ban_duration = 30  # 1 bulan
+        elif report_count >= 40:
+            ban_duration = 7  # 7 hari
+        elif report_count >= 20:
+            ban_duration = 3  # 3 hari
+        
+        if ban_duration > 0:
+            await update_ban_status(reported_user_id, ban_duration)
     else:
         await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
     await query.edit_message_reply_markup(reply_markup=None) 
