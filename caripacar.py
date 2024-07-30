@@ -300,6 +300,11 @@ async def leave(update: Update, context: CallbackContext) -> None:
             users[:] = [u for u in users if u.id != partner_id]
                 
             await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. Anda juga telah keluar dari pool.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
+            
+            report_keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{user.id}')]]
+            reply_markup = InlineKeyboardMarkup(report_keyboard)
+            await context.bot.send_message(chat_id=partner_id, text='Jika Anda ingin melaporkan pengguna ini, silakan klik tombol di bawah.', reply_markup=reply_markup)
+        
         await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
         
         # Kirim tombol report untuk melaporkan pengguna yang meninggalkan chat
