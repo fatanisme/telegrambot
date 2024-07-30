@@ -83,13 +83,14 @@ async def update_ban_status(user_id: int, ban_duration: int) -> None:
 async def report_button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     user_id = query.from_user.id
+
     
     # Tambah jumlah laporan untuk pengguna yang dilaporkan
-    user = users_collection.find_one({"user_id": user_id})
+    user = users_collection.find_one({"user_id": reported_user_id})
     if user:
         report_count = user.get('report_count', 0) + 1
         users_collection.update_one(
-            {"user_id": user_id},
+            {"user_id": reported_user_id},
             {"$set": {"report_count": report_count}}
         )
         
@@ -105,10 +106,10 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             ban_duration = 3  # 3 hari
         
         if ban_duration > 0:
-            await update_ban_status(user_id, ban_duration)
-            await query.answer(text=f'Pengguna {user_id} telah dibanned selama {ban_duration} hari.')
+            await update_ban_status(reported_user_id, ban_duration)
+            await query.answer(text=f'Pengguna {reported_user_id} telah dibanned selama {ban_duration} hari.')
         else:
-            await query.answer(text=f'Jumlah laporan pengguna {user_id} adalah {report_count}.')
+            await query.answer(text=f'Jumlah laporan pengguna {reported_user_id} adalah {report_count}.')
     else:
         await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
 
@@ -305,7 +306,7 @@ async def leave(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
         
         # Kirim tombol report untuk melaporkan pengguna yang meninggalkan chat
-        keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{user.id}')]]
+        keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{partner_id}')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text('Jika Anda ingin melaporkan pengguna ini, silakan klik tombol di bawah.', reply_markup=reply_markup)
         
