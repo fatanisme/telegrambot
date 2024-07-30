@@ -11,6 +11,8 @@ db = mongo_client['caripacar_db']
 users_collection = db['users']
 chats_collection = db['chats']
 khodam_collection = db['khodam']
+jodoh_collection = db['couples']
+user_pairs_collection = db['user_pairs']
 
 # Fungsi untuk menyimpan chat ke MongoDB
 def save_chat_to_mongodb(user_id, partner_id, message_type, message):
@@ -57,15 +59,85 @@ def save_user_to_mongodb(user_id, **kwargs):
     except Exception as e:
         print(f"Error saving user to database: {e}")
 
+async def check_ban_status(user_id: int) -> bool:
+    user = users_collection.find_one({"user_id": user_id})
+    if user and 'banned_until' in user:
+        banned_until = user['banned_until']
+        if datetime.datetime.now() > banned_until:
+            # Remove ban info if the ban duration has passed
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$unset": {"banned_until": ""}}
+            )
+            return False
+        return True
+    return False
+
+async def update_ban_status(user_id: int, ban_duration: int) -> None:
+    banned_until = datetime.datetime.now() + datetime.timedelta(days=ban_duration)
+    users_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {"banned_until": banned_until}}
+    )
+
+async def report_button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    # Ambil ID pengguna yang dilaporkan dari data callback
+    reported_user_id = int(query.data.split('_')[1])
+    
+    # Tambah jumlah laporan untuk pengguna yang dilaporkan
+    user = users_collection.find_one({"user_id": reported_user_id})
+    if user:
+        report_count = user.get('report_count', 0) + 1
+        users_collection.update_one(
+            {"user_id": reported_user_id},
+            {"$set": {"report_count": report_count}}
+        )
+        
+        # Tentukan durasi banned berdasarkan jumlah laporan
+        ban_duration = 0
+        if report_count >= 80:
+            ban_duration = float('inf')  # banned selamanya
+        elif report_count >= 50:
+            ban_duration = 30  # 1 bulan
+        elif report_count >= 40:
+            ban_duration = 7  # 7 hari
+        elif report_count >= 20:
+            ban_duration = 3  # 3 hari
+        
+        if ban_duration > 0:
+            await update_ban_status(reported_user_id, ban_duration)
+            await query.answer(text=f'Pengguna {reported_user_id} telah dibanned selama {ban_duration} hari.')
+        else:
+            await query.answer(text=f'Jumlah laporan pengguna {reported_user_id} adalah {report_count}.')
+    else:
+        await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
+
+
 # Daftar untuk menyimpan user
 users = []
-user_pairs = {}
 user_settings = {}
+user_pairs = {}
+
+def load_user_pairs_from_mongodb():
+    global user_pairs
+    user_pairs = {}
+    
+    # Ambil data dari koleksi user_pairs
+    for document in user_pairs_collection.find():
+        user_id = document.get('user_id')
+        partner_id = document.get('partner_id')
+        if user_id and partner_id:
+            user_pairs[user_id] = partner_id
+            user_pairs[partner_id] = user_id
+load_user_pairs_from_mongodb()            
 
 async def main_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("👽👽👽 CEK KHODAM 👽👽👽", callback_data='check_khodam')],
-        [InlineKeyboardButton("💗💗💗 CEK JODOH 💗💗💗", callback_data='check_partner')],
+        [InlineKeyboardButton("💗💗💗 CEK JODOH 💗💗💗", callback_data='check_jodoh')],
         [InlineKeyboardButton("Batal", callback_data='cancel')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -78,9 +150,14 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     if query.data == 'check_khodam':
         user_settings[user_id] = 'waiting_for_khodam_name'
         await query.edit_message_text("Silakan masukkan nama Anda untuk mendapatkan Khodam:")        
-    elif query.data == 'check_partner':
-        # Implementasi fungsi Cek Jodoh jika ada
-        await query.edit_message_text('Fungsi Cek Jodoh belum diimplementasikan.')
+    elif query.data == 'check_jodoh':
+        user_settings[user_id] = 'waiting_for_couple'
+        keyboard = [
+                [InlineKeyboardButton("👽👽👽 PRIA 👽👽👽", callback_data='pria')],
+                [InlineKeyboardButton("💗💗💗 WANITA 💗💗💗", callback_data='wanita')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text('Pilih Jenis Kelamin Anda :', reply_markup=reply_markup)
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
@@ -94,12 +171,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
     
     start_message = (
-        "Selamat datang di Anonymous Chat!\n\n"
+        "Selamat datang di Anonymous Chat Hello Teman!\n\n"
         "Coba perintah berikut untuk memastikan bot berfungsi:\n"
-        "/khodam - Untuk mengecek khodam yang kamu miliki.\n"
-        "/join - Untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
-        "/leave - Untuk keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
-        "/help - Memulai bot dan menerima pesan sambutan.\n"
+        "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
+        "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
+        "/help - Melihat daftar perintah dan bantuan.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
     await update.message.reply_text(start_message)
@@ -115,14 +193,52 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
-        "/khodam - Untuk mengecek khodam yang kamu miliki.\n"
         "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
         "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
-        "/help - Memulai bot dan menerima pesan sambutan.\n"
+        "/help - Melihat daftar perintah dan bantuan.\n"
+        "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
     await update.message.reply_text(help_message)
+async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.message.from_user
+    keyboard = [
+        [InlineKeyboardButton("Umur", callback_data='update_age')],
+        [InlineKeyboardButton("Jenis Kelamin", callback_data='update_gender')],
+        [InlineKeyboardButton("Kota/Kabupaten", callback_data='update_city')],
+        [InlineKeyboardButton("Tutup", callback_data='close')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Pilih pengaturan yang ingin diubah:', reply_markup=reply_markup)
 
+async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'update_age':
+        user_settings[user_id] = 'waiting_for_age'
+        await query.edit_message_text('Silakan kirimkan umur Anda:')
+    elif query.data == 'update_gender':
+        user_settings[user_id] = 'waiting_for_gender'
+        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
+    elif query.data == 'update_city':
+        user_settings[user_id] = 'waiting_for_city'
+        await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
+    elif query.data == 'close':
+        await query.edit_message_text('Pengaturan ditutup.')
+
+async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'pria':
+        user_settings[user_id] = 'waiting_for_pria'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+    elif query.data == 'wanita':
+        user_settings[user_id] = 'waiting_for_wanita'
+        await query.edit_message_text('Silakan masukan nama Anda:')
+        
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     user_id = user.id
@@ -131,26 +247,50 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     last_name = user.last_name
     full_name = user.full_name
     save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
-    
+
+     # Check if the user is banned
+    if await check_ban_status(user.id):
+        await update.message.reply_text('Anda telah dibanned dan tidak dapat bergabung kembali.')
+        return
+
     if user.id not in [u.id for u in users]:
         users.append(user)
         await update.message.reply_text('Anda telah bergabung ke dalam pool chat random. Sedang mencari pasangan chat.')
-        await start_chat(update, context, user.id)
+        await start_chat(update, context)
     else:
         await update.message.reply_text('Anda sudah berada di dalam pool chat. Gunakan /leave terlebih dahulu untuk keluar dari obrolan.')
 
-async def start_chat(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id: int) -> None:
+async def start_chat(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
     other_users = [u.id for u in users if u.id != user_id and u.id not in user_pairs.values()]
+    
     if other_users:
         partner_id = random.choice(other_users)
         user_pairs[user_id] = partner_id
         user_pairs[partner_id] = user_id
-        await context.bot.send_message(chat_id=partner_id, text=f"Anda terhubung dengan pasangan anda. Mulailah mengobrol!")
-        await context.bot.send_message(chat_id=user_id, text=f"Anda terhubung dengan pasangan anda. Mulailah mengobrol!")
+        
+        # Save user pairs to database
+        user_pairs_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {"partner_id": partner_id}},
+            upsert=True
+        )
+        user_pairs_collection.update_one(
+            {"user_id": partner_id},
+            {"$set": {"partner_id": user_id}},
+            upsert=True
+        )
+
+        await context.bot.send_message(chat_id=partner_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
+                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
+        await context.bot.send_message(chat_id=user_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
+                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
+                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
     else:
         await context.bot.send_message(chat_id=user_id, text='Harap Tunggu Sebentar....')
 
-async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def leave(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     if user.id in [u.id for u in users]:
         users[:] = [u for u in users if u.id != user.id]
@@ -158,12 +298,31 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if partner_id:
             user_pairs.pop(partner_id, None)
             users[:] = [u for u in users if u.id != partner_id]
+                
             await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. Anda juga telah keluar dari pool.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
         await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
+        
+        # Kirim tombol report untuk melaporkan pengguna yang meninggalkan chat
+        keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{user.id}')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text('Jika Anda ingin melaporkan pengguna ini, silakan klik tombol di bawah.', reply_markup=reply_markup)
+        
+        # Remove user pairs from database
+        user_pairs_collection.delete_many({"user_id": {"$in": [user.id, partner_id]}})
     else:
         await update.message.reply_text('Anda belum bergabung dalam pool chat.\n\n'
-        "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
+                                        "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
 
+async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.message.from_user
+    user_id = user.id
+
+    # Panggil fungsi leave untuk keluar dari chat saat ini
+    await leave(update, context)
+
+    # Panggil fungsi join untuk mencari pasangan baru
+    await join(update, context)
+    
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     if user.id in [u.id for u in users]:
@@ -171,12 +330,13 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await update.message.reply_text('Anda belum bergabung dalam pool chat. Gunakan /join untuk bergabung.')
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_message(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
     user_input = update.message.text    
     partner_id = user_pairs.get(user.id)
-
+    
     if partner_id:
+        # Handle different message types and forward them to the partner
         if update.message.text:
             await context.bot.send_message(chat_id=partner_id, text=update.message.text)
             save_chat_to_mongodb(str(user.id), str(partner_id), "text", update.message.text)
@@ -228,6 +388,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif user_settings[user.id] == 'waiting_for_khodam_name':
             # Mengambil Khodam secara random dari collection
             khodam_list = list(khodam_collection.find())
+            
             if random.random() < 0.5:
                 message = await update.message.reply_text("Memilih Khodam...")
                 # Menampilkan rolling list selama 4 detik
@@ -261,9 +422,38 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
                 else:
                     await update.message.reply_text("Maaf, tidak ada Khodam yang tersedia saat ini.")
-        elif user_settings[user.id] == 'waiting_for_couple':
-            save_user_to_mongodb(user.id, gender=user_input.capitalize())
+        elif user_settings[user.id] == 'waiting_for_pria' or user_settings[user.id] == 'waiting_for_wanita':
+                            
+            if user_settings[user.id] == 'waiting_for_pria':
+                user_gender = "pria"
+                jodoh_list = list(jodoh_collection.find({'gender': 'wanita'}))
+                
+            elif user_settings[user.id] == 'waiting_for_wanita':
+                user_gender = "wanita"
+                jodoh_list = list(jodoh_collection.find({'gender': 'pria'}))
             
+            if jodoh_list:
+                
+                # Mengirim pesan awal yang menunjukkan sistem sedang memilih Khodam
+                message = await update.message.reply_text("Memilih Jodoh...")
+
+                # Menampilkan rolling list selama 4 detik
+                num_rolls = 10  # Total list Khodam yang ditampilkan
+                for i in range(num_rolls):
+                    random_jodoh = random.choice(jodoh_list)
+                    jodoh_name = random_jodoh.get('name', 'Jodoh tidak diketahui')
+                    await message.edit_text(f"{jodoh_name}  (Roll {i+1})")
+
+                # Pilih Khodam secara final
+                final_jodoh = random.choice(jodoh_list)
+                final_jodoh_name = final_jodoh.get('name', 'Jodoh tidak diketahui')
+
+                # Edit pesan dengan hasil akhir
+                await message.edit_text(f"Halo {user_input}, Jodoh Anda adalah: {final_jodoh_name}")
+                save_user_to_mongodb(user.id, gender=user_gender.capitalize())
+            else:
+                await update.message.reply_text("Maaf, tidak ada Jodoh yang tersedia saat ini.")
+                            
         # Menghapus state
         user_settings.pop(user.id, None)
 
@@ -274,22 +464,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    active_user_count = len(users)
+    # Ambil semua user_id dan partner_id dari koleksi user_pairs
+    user_pairs = user_pairs_collection.find({}, {"user_id": 1, "partner_id": 1})
+
+    # Inisialisasi set untuk menyimpan user_id dan partner_id
+    user_ids = set()
+    partner_ids = set()
+
+    for pair in user_pairs:
+        user_ids.add(pair["user_id"])
+        partner_ids.add(pair["partner_id"])
+
+    # Filter user_ids agar tidak ada di partner_ids
+    active_user_ids = user_ids
+
+    active_user_count = len(active_user_ids)
     if active_user_count == 0:
         await update.message.reply_text("Tidak ada pengguna aktif saat ini.")
         return
 
-    # Mengumpulkan ID pengguna dan nama lengkap dari daftar pengguna aktif
-    active_user_info = [f"ID: {user.id}, Nama Lengkap: {user.full_name}" for user in users]
-    active_user_list = "\n".join(active_user_info)
-
     # Mengirimkan jumlah pengguna aktif dan daftar pengguna aktif
     response_message = (
         f"Jumlah pengguna aktif saat ini: {active_user_count}\n\n"
-        f"Daftar pengguna aktif:\n{active_user_list}"
     )
     await update.message.reply_text(response_message)
-
+    
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
     if message:
@@ -328,34 +527,7 @@ async def userdetail(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     else:
         await update.message.reply_text("Harap masukkan user_id yang valid. Contoh: /userdetail 1")
 
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.message.from_user
-    keyboard = [
-        [InlineKeyboardButton("Umur", callback_data='update_age')],
-        [InlineKeyboardButton("Jenis Kelamin", callback_data='update_gender')],
-        [InlineKeyboardButton("Kota/Kabupaten", callback_data='update_city')],
-        [InlineKeyboardButton("Tutup", callback_data='close')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Pilih pengaturan yang ingin diubah:', reply_markup=reply_markup)
 
-
-
-async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user_id = query.from_user.id
-
-    if query.data == 'update_age':
-        user_settings[user_id] = 'waiting_for_age'
-        await query.edit_message_text('Silakan kirimkan umur Anda:')
-    elif query.data == 'update_gender':
-        user_settings[user_id] = 'waiting_for_gender'
-        await query.edit_message_text('Silakan pilih jenis kelamin Anda dengan mengetikkan "Pria" atau "Wanita":')
-    elif query.data == 'update_city':
-        user_settings[user_id] = 'waiting_for_city'
-        await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
-    elif query.data == 'close':
-        await query.edit_message_text('Pengaturan ditutup.')
 
 async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
@@ -378,11 +550,12 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main():
-    application = ApplicationBuilder().token(CARIPACAR_BOT_TOKEN).build()
+    application = ApplicationBuilder().token(HELLOTEMAN_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("join", join))
+    application.add_handler(CommandHandler("next", next))
     application.add_handler(CommandHandler("chat", chat))
     application.add_handler(CommandHandler("leave", leave))
     application.add_handler(CommandHandler("activeusers", active_users))
@@ -392,11 +565,13 @@ def main():
     application.add_handler(CommandHandler("settings", settings))
     
     application.add_handler(CommandHandler("bermain", main_command))  # Tambahkan baris ini
-    application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_partner|cancel)$'))
+    application.add_handler(CallbackQueryHandler(main_button_handler, pattern='^(check_khodam|check_jodoh|cancel)$'))
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
+    application.add_handler(CallbackQueryHandler(report_button, pattern='^report_'))
     application.add_handler(CallbackQueryHandler(settings_button_handler))
+    application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
 
     application.run_polling()
