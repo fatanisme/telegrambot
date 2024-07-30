@@ -83,6 +83,12 @@ def dashboard():
                            active_users_count=active_users_count, 
                            total_users_count=total_users_count)
 
+from math import ceil
+from flask import render_template, request
+from flask_login import login_required
+from bson import Int64
+import re
+
 @app.route('/users')
 @login_required
 def users():
@@ -96,7 +102,17 @@ def users():
 
     query = {}
     if user_id:
-        query['user_id'] = {'$regex': user_id, '$options': 'i'}  # Case-insensitive regex search
+        try:
+            if re.match(r'^\d+$', user_id):
+                # If user_id is a numeric string, convert it to NumberLong
+                user_id_long = Int64(user_id)
+                query['user_id'] = user_id_long
+            else:
+                # If user_id is not purely numeric, treat it as a string
+                query['user_id'] = user_id
+        except ValueError:
+            pass
+
     if username:
         query['username'] = {'$regex': username, '$options': 'i'}
     if gender:
@@ -121,6 +137,7 @@ def users():
     }
 
     return render_template('users.html', users=users, pagination=pagination)
+
 
 @app.route('/activeusers')
 @login_required
