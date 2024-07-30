@@ -166,7 +166,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     first_name = user.first_name
     last_name = user.last_name
     full_name = user.full_name
-    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
+    activate = True
+    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name,activate = activate)
     
     start_message = (
         "Selamat datang di Anonymous Chat Hello Teman!\n\n"
@@ -187,7 +188,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     first_name = user.first_name
     last_name = user.last_name
     full_name = user.full_name
-    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
+    activate = True
+    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name,activate = activate)
     
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
@@ -244,7 +246,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     first_name = user.first_name
     last_name = user.last_name
     full_name = user.full_name
-    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
+    activate = True
+    save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name,activate = activate)
     
      # Check if the user is banned
     if await check_ban_status(user.id):
@@ -496,6 +499,16 @@ async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(response_message)
     
+def remove_user_from_database(user_id):
+    result = users_collection.update_one(
+        {'user_id': user_id},
+        {'$set': {'activate': False}}
+    )
+    if result.modified_count > 0:
+        print(f"User with user_id {user_id} has been deactivated.")
+    else:
+        print(f"User with user_id {user_id} not found or already deactivated.")
+
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
     if message:
@@ -505,6 +518,8 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await context.bot.send_message(chat_id=user_id, text=message)
             except Exception as e:
                 print(f"Error sending message to user {user_id}: {e}")
+                remove_user_from_database(user_id)
+                
         await update.message.reply_text(f"Pesan '{message}' telah diposting kepada {len(all_users)} pengguna.")
     else:
         await update.message.reply_text("Harap masukkan pesan yang ingin diposting. Contoh: /post ini adalah pesan yang akan dipost.")

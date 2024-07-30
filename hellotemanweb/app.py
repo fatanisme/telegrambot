@@ -69,9 +69,9 @@ def get_active_users_count():
     # Menghitung jumlah dokumen di koleksi `user_pairs`
     return db.user_pairs.count_documents({})  # Menghitung semua dokumen di koleksi `user_pairs`
 
-def get_total_users_count():
-    # Menghitung jumlah dokumen di koleksi `users` untuk mendapatkan total pengguna
-    return db.users.count_documents({})  # Menghitung semua dokumen di koleksi `users`
+def get_total_active_users_count():
+    # Menghitung jumlah dokumen di koleksi `users` dengan kondisi `activate` = true
+    return db.users.count_documents({'activate': True})
 
 @app.route('/')
 @login_required
