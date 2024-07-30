@@ -237,7 +237,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if await check_ban_status(user.id):
         banned_user = users_collection.find_one({"user_id": user_id})
         banned_until = banned_user["banned_until"]
-        banned_until_str = datetime.strptime(banned_until, "%Y-%m-%dT%H:%M:%S").strftime("%d-%m-%Y %H:%M:%S")
+        banned_until_str = banned_until.strftime("%d-%m-%Y %H:%M:%S")
         await update.message.reply_text(f'Anda telah dibanned dan tidak dapat bergabung kembali sampai {banned_until_str}.')
         return
 
