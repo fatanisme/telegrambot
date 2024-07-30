@@ -105,10 +105,10 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             ban_duration = 3  # 3 hari
         
         if ban_duration > 0:
-            await update_ban_status(reported_user_id, ban_duration)
-            await query.answer(text=f'Pengguna {reported_user_id} telah dibanned selama {ban_duration} hari.')
+            await update_ban_status(user_id, ban_duration)
+            await query.answer(text=f'Pengguna {user_id} telah dibanned selama {ban_duration} hari.')
         else:
-            await query.answer(text=f'Jumlah laporan pengguna {reported_user_id} adalah {report_count}.')
+            await query.answer(text=f'Jumlah laporan pengguna {user_id} adalah {report_count}.')
     else:
         await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
 
