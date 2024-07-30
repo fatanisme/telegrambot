@@ -52,6 +52,12 @@
           />
           {% else %} {{ chat.message }} {% endif %}
         </td>
+        {% elif chat.message_type == 'video' or chat.message_type == 'animation'
+        %}
+        <video width="320" height="240" controls>
+          <source src="{{ chat.message }}" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </tr>
       {% endfor %}
     </tbody>
