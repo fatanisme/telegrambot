@@ -2,7 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
 from bottokens import HELLOTEMAN_BOT_TOKEN
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 
 # Inisialisasi koneksi ke MongoDB
@@ -58,6 +58,59 @@ def save_user_to_mongodb(user_id, **kwargs):
             print(f"User inserted into the database with ID: {result.inserted_id}")
     except Exception as e:
         print(f"Error saving user to database: {e}")
+
+async def check_ban_status(user_id: int) -> bool:
+    user = users_collection.find_one({"user_id": user_id})
+    if user and 'banned_until' in user:
+        banned_until = user['banned_until']
+        if datetime.now() > banned_until:
+            # Remove ban info if the ban duration has passed
+            users_collection.update_one(
+                {"user_id": user_id},
+                {"$unset": {"banned_until": ""}}
+            )
+            return False
+        return True
+    return False
+
+async def update_ban_status(user_id: int, ban_duration: int) -> None:
+    banned_until = datetime.now() + timedelta(days=ban_duration)
+    users_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {"banned_until": banned_until}}
+    )
+
+async def report_button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+        
+    # Ambil ID pengguna yang dilaporkan dari data callback
+    reported_user_id = int(query.data.split('_')[1])
+    
+    # Tambah jumlah laporan untuk pengguna yang dilaporkan
+    user = users_collection.find_one({"user_id": reported_user_id})
+    if user:
+        report_count = user.get('report_count', 0) + 1
+        users_collection.update_one(
+            {"user_id": reported_user_id},
+            {"$set": {"report_count": report_count}}
+        )
+        
+        # Tentukan durasi banned berdasarkan jumlah laporan
+        ban_duration = 0
+        if report_count >= 80:
+            ban_duration = float('inf')  # banned selamanya
+        elif report_count >= 50:
+            ban_duration = 30  # 1 bulan
+        elif report_count >= 40:
+            ban_duration = 7  # 7 hari
+        elif report_count >= 20:
+            ban_duration = 3  # 3 hari
+        
+        if ban_duration > 0:
+            await update_ban_status(reported_user_id, ban_duration)
+    else:
+        await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
+    await query.edit_message_reply_markup(reply_markup=None) 
 
 # Daftar untuk menyimpan user
 users = []
@@ -115,10 +168,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     start_message = (
         "Selamat datang di Anonymous Chat Hello Teman!\n\n"
-        "Coba perintah berikut untuk memastikan bot berfungsi:\n"
-        "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "Coba ketik perintah berikut untuk memastikan bot berfungsi:\n"
+        "/join - Bergabung ke dalam obrolan untuk memulai chat dengan pengguna acak.\n"
         "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
-        "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
+        "/leave - Keluar dari obrolan dan mengakhiri obrolan saat ini.\n"
         "/help - Melihat daftar perintah dan bantuan.\n"
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
@@ -136,9 +189,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     help_message = (
         "Daftar perintah yang tersedia:\n\n"
-        "/join - Bergabung ke dalam pool chat untuk memulai chat dengan pengguna acak.\n"
+        "/join - Bergabung ke dalam obrolan untuk memulai chat dengan pengguna acak.\n"
         "/next - Mengganti pasangan anda dengan pengguna acak yang lain.\n"
-        "/leave - Keluar dari pool chat dan mengakhiri obrolan saat ini.\n"
+        "/leave - Keluar dari obrolan.\n"
         "/help - Melihat daftar perintah dan bantuan.\n"
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
@@ -191,12 +244,20 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     full_name = user.full_name
     save_user_to_mongodb(user_id, username=username, first_name=first_name, last_name=last_name, full_name=full_name)
     
+     # Check if the user is banned
+    if await check_ban_status(user.id):
+        banned_user = users_collection.find_one({"user_id": user_id})
+        banned_until = banned_user["banned_until"]
+        banned_until_str = banned_until.strftime("%d-%m-%Y %H:%M:%S")
+        await update.message.reply_text(f'Anda telah dibanned dan tidak dapat bergabung kembali sampai {banned_until_str}.')
+        return
+
     if user.id not in [u.id for u in users]:
         users.append(user)
-        await update.message.reply_text('Anda telah bergabung ke dalam pool chat random. Sedang mencari pasangan chat.')
+        await update.message.reply_text('Sedang mencari pasangan chat...')
         await start_chat(update, context)
     else:
-        await update.message.reply_text('Anda sudah berada di dalam pool chat. Gunakan /leave terlebih dahulu untuk keluar dari obrolan.')
+        await update.message.reply_text('Anda sedang dalam pencarian pasangan. Ketik /leave untuk keluar dari pencarian pasangan.')
 
 async def start_chat(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
@@ -219,14 +280,13 @@ async def start_chat(update: Update, context: CallbackContext) -> None:
             upsert=True
         )
 
-        await context.bot.send_message(chat_id=partner_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
-                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
-                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
-        await context.bot.send_message(chat_id=user_id, text="Anda terhubung dengan pasangan anda. Mulailah mengobrol!\n\n"
-                                       "Gunakan perintah /next untuk mengganti pasangan anda dengan pengguna acak yang lain.\n"
-                                       "Gunakan perintah /leave untuk keluar dari obrolan.\n")
-    else:
-        await context.bot.send_message(chat_id=user_id, text='Harap Tunggu Sebentar....')
+        await context.bot.send_message(chat_id=partner_id, text="Pasangan ditemukan. Mulailah mengobrol!\n\n"
+                                       "Ketik /next - mengganti pasangan anda.\n"
+                                       "Ketik /leave - keluar dari obrolan.\n")
+        await context.bot.send_message(chat_id=user_id, text="Pasangan ditemukan. Mulailah mengobrol!\n\n"
+                                       "Ketik /next - mengganti pasangan anda.\n"
+                                       "Ketik /leave - keluar dari obrolan.\n")
+    
 
 async def leave(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
@@ -237,13 +297,26 @@ async def leave(update: Update, context: CallbackContext) -> None:
             user_pairs.pop(partner_id, None)
             users[:] = [u for u in users if u.id != partner_id]
                 
-            await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. Anda juga telah keluar dari pool.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
-        await update.message.reply_text('Anda telah keluar dari pool chat dan mengakhiri obrolan saat ini.\n\n Gunakan perintah /join untuk mencari pasangan baru.')
+            await context.bot.send_message(chat_id=partner_id, text='Pasangan Anda telah meninggalkan chat. \n\n Ketik /join untuk mencari pasangan baru.')
+            
+            report_keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{user.id}')]]
+            reply_markup = InlineKeyboardMarkup(report_keyboard)
+            await context.bot.send_message(chat_id=partner_id, text='Jika Anda ingin melaporkan pengguna ini, silakan klik tombol di bawah.', reply_markup=reply_markup)
+       
+        if partner_id is None:
+            await update.message.reply_text('Anda telah keluar dari obrolan.\n\n Ketik /join untuk mencari pasangan baru.')
+        else:
+            await update.message.reply_text('Anda telah keluar dari obrolan.\n\n Ketik /join untuk mencari pasangan baru.')    
+            # Kirim tombol report untuk melaporkan pengguna yang meninggalkan chat
+            keyboard = [[InlineKeyboardButton("Laporkan Pengguna", callback_data=f'report_{partner_id}')]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('Jika Anda ingin melaporkan pengguna ini, silakan klik tombol di bawah.', reply_markup=reply_markup)
+            
         # Remove user pairs from database
         user_pairs_collection.delete_many({"user_id": {"$in": [user.id, partner_id]}})
     else:
-        await update.message.reply_text('Anda belum bergabung dalam pool chat.\n\n'
-                                        "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.")
+        await update.message.reply_text('Anda belum bergabung ke dalam obrolan.\n\n'
+                                        "Ketik /join untuk bergabung ke dalam obrolan.")
 
 async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -258,9 +331,9 @@ async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     if user.id in [u.id for u in users]:
-        await update.message.reply_text('Anda sudah berada di dalam pool chat. Gunakan /leave terlebih dahulu untuk memulai obrolan baru.')
+        await update.message.reply_text('Anda sudah berada di dalam obrolan. Ketik /leave untuk memulai obrolan baru.')
     else:
-        await update.message.reply_text('Anda belum bergabung dalam pool chat. Gunakan /join untuk bergabung.')
+        await update.message.reply_text('Anda belum bergabung dalam obrolan. Ketik /join untuk bergabung.')
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
     user = update.message.from_user
@@ -392,7 +465,7 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text(
             'Anda tidak sedang dalam chat dengan siapapun.\n\n'
-            "Gunakan /join untuk bergabung ke dalam pool chat dan langsung memulai chat dengan pengguna acak.\n"
+            "Ketik /join untuk bergabung ke dalam obrolan secara acak.\n"
         )
 
 async def active_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -501,6 +574,7 @@ def main():
 
     application.add_handler(CommandHandler("myprofile", myprofile))  # Tambahkan baris ini
 
+    application.add_handler(CallbackQueryHandler(report_button, pattern='^report_'))
     application.add_handler(CallbackQueryHandler(settings_button_handler))
     application.add_handler(CallbackQueryHandler(handle_message_callback))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
