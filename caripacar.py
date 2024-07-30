@@ -83,7 +83,8 @@ async def update_ban_status(user_id: int, ban_duration: int) -> None:
 async def report_button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     user_id = query.from_user.id
-
+    
+    
     # Ambil ID pengguna yang dilaporkan dari data callback
     reported_user_id = int(query.data.split('_')[1])
     
@@ -106,6 +107,8 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             ban_duration = 7  # 7 hari
         elif report_count >= 20:
             ban_duration = 3  # 3 hari
+        elif report_count >= 10:
+            ban_duration = 1  # 1 hari
         
         if ban_duration > 0:
             await update_ban_status(reported_user_id, ban_duration)
@@ -114,7 +117,7 @@ async def report_button(update: Update, context: CallbackContext) -> None:
             await query.answer(text=f'Jumlah laporan pengguna {reported_user_id} adalah {report_count}.')
     else:
         await query.answer(text='Pengguna yang dilaporkan tidak ditemukan.')
-
+    await query.edit_message_reply_markup(reply_markup=None) 
 
 # Daftar untuk menyimpan user
 users = []
