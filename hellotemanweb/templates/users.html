@@ -81,16 +81,56 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>User ID</th>
-        <th>Username</th>
+        <th>
+          <a
+            href="?sort_by=user_id&sort_order={{ 'desc' if sort_by == 'user_id' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >User ID</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=username&sort_order={{ 'desc' if sort_by == 'username' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Username</a
+          >
+        </th>
         <th>First Name</th>
         <th>Full Name</th>
-        <th>Gender</th>
-        <th>City</th>
-        <th>Age</th>
-        <th>Report Count</th>
-        <th>Banned Until</th>
-        <th>Active</th>
+        <th>
+          <a
+            href="?sort_by=gender&sort_order={{ 'desc' if sort_by == 'gender' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Gender</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=city&sort_order={{ 'desc' if sort_by == 'city' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >City</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=age&sort_order={{ 'desc' if sort_by == 'age' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Age</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=report_count&sort_order={{ 'desc' if sort_by == 'report_count' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Report Count</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=banned_until&sort_order={{ 'desc' if sort_by == 'banned_until' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Banned Until</a
+          >
+        </th>
+        <th>
+          <a
+            href="?sort_by=activate&sort_order={{ 'desc' if sort_by == 'activate' and sort_order == 'asc' else 'asc' }}{{ request.args.urlencode | safe }}"
+            >Active</a
+          >
+        </th>
       </tr>
     </thead>
     <tbody>

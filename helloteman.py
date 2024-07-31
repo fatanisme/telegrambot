@@ -513,6 +513,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = " ".join(context.args)
     if message:
         all_users = [user['user_id'] for user in users_collection.find()]
+        all_active_users = [user['user_id'] for user in users_collection.find() if user['user_id'] != False]
         for user_id in all_users:
             try:
                 await context.bot.send_message(chat_id=user_id, text=message)
@@ -520,7 +521,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 print(f"Error sending message to user {user_id}: {e}")
                 remove_user_from_database(user_id)
                 
-        await update.message.reply_text(f"Pesan '{message}' telah diposting kepada {len(all_users)} pengguna.")
+        await update.message.reply_text(f"Pesan '{message}' telah diposting kepada {len(all_active_users)} pengguna.")
     else:
         await update.message.reply_text("Harap masukkan pesan yang ingin diposting. Contoh: /post ini adalah pesan yang akan dipost.")
 

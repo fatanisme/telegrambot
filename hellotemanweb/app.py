@@ -89,6 +89,19 @@ from flask_login import login_required
 from bson import Int64
 import re
 
+from flask import Flask, request, render_template
+from pymongo import MongoClient
+from bson.int64 import Int64
+from math import ceil
+import re
+
+app = Flask(__name__)
+
+# Setup MongoDB client and collection
+client = MongoClient('mongodb://localhost:27017/')
+db = client['your_database']
+users_collection = db['users']
+
 @app.route('/users')
 @login_required
 def users():
@@ -99,6 +112,15 @@ def users():
     age = request.args.get('age', '')
     page = int(request.args.get('page', 1))
     per_page = 30
+
+    # Sorting parameters
+    sort_by = request.args.get('sort_by', 'user_id')  # Default sort by user_id
+    sort_order = request.args.get('sort_order', 'asc')  # Default sort order ascending
+
+    if sort_order not in ['asc', 'desc']:
+        sort_order = 'asc'  # Default to ascending if invalid value
+
+    sort_direction = 1 if sort_order == 'asc' else -1
 
     query = {}
     if user_id:
@@ -122,7 +144,15 @@ def users():
     if age:
         query['age'] = age
 
-    users = list(users_collection.find(query).skip((page - 1) * per_page).limit(per_page))
+    # Ensure the sort field is valid
+    valid_sort_fields = ['user_id', 'report_count', 'banned_until', 'activate']
+    if sort_by not in valid_sort_fields:
+        sort_by = 'user_id'
+
+    users = list(users_collection.find(query)
+                        .sort(sort_by, sort_direction)
+                        .skip((page - 1) * per_page)
+                        .limit(per_page))
     total_users = users_collection.count_documents(query)
     total_pages = ceil(total_users / per_page)
 
@@ -136,7 +166,7 @@ def users():
         'next_num': page + 1
     }
 
-    return render_template('users.html', users=users, pagination=pagination)
+    return render_template('users.html', users=users, pagination=pagination, sort_by=sort_by, sort_order=sort_order)
 
 
 @app.route('/activeusers')
