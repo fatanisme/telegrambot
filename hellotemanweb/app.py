@@ -89,19 +89,6 @@ from flask_login import login_required
 from bson import Int64
 import re
 
-from flask import Flask, request, render_template
-from pymongo import MongoClient
-from bson.int64 import Int64
-from math import ceil
-import re
-
-app = Flask(__name__)
-
-# Setup MongoDB client and collection
-client = MongoClient('mongodb://localhost:27017/')
-db = client['your_database']
-users_collection = db['users']
-
 @app.route('/users')
 @login_required
 def users():
@@ -167,7 +154,6 @@ def users():
     }
 
     return render_template('users.html', users=users, pagination=pagination, sort_by=sort_by, sort_order=sort_order)
-
 
 @app.route('/activeusers')
 @login_required
