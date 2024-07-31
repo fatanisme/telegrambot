@@ -77,7 +77,7 @@ def get_total_active_users_count():
 @login_required
 def dashboard():
     active_users_count = get_active_users_count()
-    total_users_count = get_total_users_count()
+    total_users_count = get_total_active_users_count()
     
     return render_template('dashboard.html', 
                            active_users_count=active_users_count, 
