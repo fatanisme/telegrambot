@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
 from bottokens import CARIPACAR_BOT_TOKEN
@@ -157,6 +157,15 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
+def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
+    keyboard = [
+        ['Cari Pasangan', 'Pengaturan'],
+        ['Bantuan', 'Keluar']
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     user_id = user.id
@@ -176,6 +185,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
+    send_main_menu(update, context)
     await update.message.reply_text(start_message)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -317,6 +327,7 @@ async def leave(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text('Anda belum bergabung ke dalam obrolan.\n\n'
                                         "Ketik /join untuk bergabung ke dalam obrolan.")
+    send_main_menu(update, context)
 
 async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
