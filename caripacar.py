@@ -167,7 +167,7 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> N
 
 async def remove_keyboard(update, context):
     reply_markup = ReplyKeyboardRemove()
-    await context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=update.effective_chat.id,text="", reply_markup=reply_markup)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
