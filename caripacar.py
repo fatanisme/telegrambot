@@ -157,13 +157,13 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif query.data == 'cancel':
         await query.edit_message_text('Operasi dibatalkan.')
 
-def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
+async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
     keyboard = [
         ['Cari Pasangan', 'Pengaturan'],
         ['Bantuan', 'Keluar']
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -327,7 +327,7 @@ async def leave(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text('Anda belum bergabung ke dalam obrolan.\n\n'
                                         "Ketik /join untuk bergabung ke dalam obrolan.")
-    send_main_menu(update, context)
+    await send_main_menu(update, context)
 
 async def next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
