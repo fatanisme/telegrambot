@@ -185,7 +185,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/bermain - Untuk mengecek khodam dan jodoh yang kamu miliki.\n"
         "/settings - Update data diri anda (Umur, Jenis kelamin, Alamat).\n"
     )
-    send_main_menu(update, context)
+    await send_main_menu(update, context)
     await update.message.reply_text(start_message)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
