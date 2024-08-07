@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
 from bottokens import CARIPACAR_BOT_TOKEN
@@ -159,12 +159,14 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
     keyboard = [
-        ['Cari Pasangan', 'Pengaturan'],
-        ['Bantuan', 'Keluar']
+        ['Cari Pasangan'],
+        ['Cari berdasarkan Jenis Kelamin'],
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
 
+async def remove_keyboard(update, context):
+    reply_markup = ReplyKeyboardRemove()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -296,6 +298,7 @@ async def start_chat(update: Update, context: CallbackContext) -> None:
         await context.bot.send_message(chat_id=user_id, text="Pasangan ditemukan. Mulailah mengobrol!\n\n"
                                        "Ketik /next - mengganti pasangan anda.\n"
                                        "Ketik /leave - keluar dari obrolan.\n")
+        await remove_keyboard(update, context)
     
 
 async def leave(update: Update, context: CallbackContext) -> None:
