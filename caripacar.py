@@ -162,7 +162,7 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> N
         ['Cari Pasangan'],
         ['Cari berdasarkan Jenis Kelamin'],
     ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
 
 async def remove_keyboard(update, context):
