@@ -270,7 +270,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await start_chat(update, context)
     else:
         await update.message.reply_text('Anda sedang dalam pencarian pasangan. Ketik /leave untuk keluar dari pencarian pasangan.')
-
+    await remove_keyboard(update, context)
+    
 async def start_chat(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     other_users = [u.id for u in users if u.id != user_id and u.id not in user_pairs.values()]
@@ -298,7 +299,6 @@ async def start_chat(update: Update, context: CallbackContext) -> None:
         await context.bot.send_message(chat_id=user_id, text="Pasangan ditemukan. Mulailah mengobrol!\n\n"
                                        "Ketik /next - mengganti pasangan anda.\n"
                                        "Ketik /leave - keluar dari obrolan.\n")
-        await remove_keyboard(update, context)
     
 
 async def leave(update: Update, context: CallbackContext) -> None:
