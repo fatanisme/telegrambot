@@ -1,56 +1,59 @@
-{% extends "base.html" %} {% block title %}View Photos{% endblock %} {% block
+{% extends "base.html" %} {% block title %}View Media{% endblock %} {% block
 content %}
 <div class="container mt-4">
-  <h1 class="mb-4">View Photos</h1>
+  <h1 class="mb-4">View Media</h1>
 
-  {% if photos %}
+  {% if media %}
   <table class="table table-striped">
     <thead>
       <tr>
         <th>Chatroom ID</th>
         <th>Sender ID</th>
-        <th>Photo</th>
+        <th>Media</th>
         <th>Timestamp</th>
       </tr>
     </thead>
     <tbody>
-      {% for photo in photos %}
+      {% for item in media %}
       <tr>
-        <td>{{ photo.chatroom_id }}</td>
-        <td>{{ photo.sender_id }}</td>
+        <td>{{ item.chatroom_id }}</td>
+        <td>{{ item.sender_id }}</td>
         <td>
+          {% if item.media_type == 'photo' %}
           <img
-            src="{{ photo.photo_url }}"
+            src="{{ item.media_url }}"
             alt="Photo"
             class="img-fluid"
             style="max-height: 50px"
           />
+          {% elif item.media_type == 'video' %}
+          <video controls style="max-height: 100px">
+            <source src="{{ item.media_url }}" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          {% endif %}
         </td>
-        <td>{{ photo.timestamp | dateformat('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ item.timestamp | dateformat('%Y-%m-%d %H:%M:%S') }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
   <div class="d-flex justify-content-between">
-    {% if pagination.has_prev %}
-    <a
-      href="{{ url_for('view_photos', page=pagination.prev_num) }}"
-      class="btn btn-primary"
+    {% if page > 1 %}
+    <a href="{{ url_for('view_photos', page=page-1) }}" class="btn btn-primary"
       >Previous</a
     >
     {% endif %}
-    <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
-    {% if pagination.has_next %}
-    <a
-      href="{{ url_for('view_photos', page=pagination.next_num) }}"
-      class="btn btn-primary"
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a href="{{ url_for('view_photos', page=page+1) }}" class="btn btn-primary"
       >Next</a
     >
     {% endif %}
   </div>
   {% else %}
-  <p>No photos available.</p>
+  <p>No media available.</p>
   {% endif %}
 </div>
 {% endblock %}

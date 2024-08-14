@@ -325,14 +325,16 @@ def view_photos():
     per_page = 5
     bot_token = HELLOTEMAN_BOT_TOKEN
 
-    # Cari semua dokumen yang memiliki pesan dengan tipe 'photo'
-    chats = chats_collection.find({ "messages.message_type": "photo" })
+    # Cari semua dokumen yang memiliki pesan dengan tipe 'photo' atau 'video'
+    chats = chats_collection.find({
+        "messages.message_type": {"$in": ["photo", "video"]}
+    })
 
-    # Ekstrak data foto dari dokumen chat
-    photos = []
+    # Ekstrak data foto dan video dari dokumen chat
+    media = []
     for chat in chats:
         for message in chat.get('messages', []):
-            if message.get('message_type') != 'text':
+            if message.get('message_type') in ['photo', 'video']:
                 sender_id = message.get('sender_id')
                 chatroom_id = chat.get('chatroom_id')
                 file_id = message.get('message')
@@ -342,10 +344,10 @@ def view_photos():
                     continue
 
                 try:
-                    photo_url = get_telegram_file_url(bot_token, file_id)
+                    media_url = get_telegram_file_url(bot_token, file_id)
                 except Exception as e:
-                    photo_url = None
-                    print(f"Error fetching photo URL: {e}")
+                    media_url = None
+                    print(f"Error fetching media URL: {e}")
 
                 # Pastikan timestamp adalah objek datetime
                 if isinstance(timestamp, str):
@@ -357,37 +359,29 @@ def view_photos():
                         except ValueError:
                             timestamp = None
 
-                photos.append({
+                media.append({
                     'chatroom_id': chatroom_id,
                     'sender_id': sender_id,
-                    'photo_url': photo_url,
+                    'media_url': media_url,
+                    'media_type': message.get('message_type'),
                     'timestamp': timestamp
                 })
 
-    # Filter foto dengan timestamp yang valid
-    photos = [photo for photo in photos if photo['timestamp'] is not None]
+    # Filter media dengan timestamp yang valid
+    media = [m for m in media if m['timestamp'] is not None]
 
-    # Urutkan foto berdasarkan timestamp dari yang terbaru ke yang terlama
-    photos = sorted(photos, key=lambda x: x['timestamp'], reverse=True)
+    # Urutkan media berdasarkan timestamp dari yang terbaru ke yang terlama
+    media = sorted(media, key=lambda x: x['timestamp'], reverse=True)
 
-    # Paginasi
-    total_photos = len(photos)
-    total_pages = ceil(total_photos / per_page)
-    start = (page - 1) * per_page
-    end = start + per_page
-    photos_paginated = photos[start:end]
+    # Pagination
+    total_media = len(media)
+    total_pages = ceil(total_media / per_page)
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
 
-    pagination = {
-        'page': page,
-        'total': total_photos,
-        'pages': total_pages,
-        'has_prev': page > 1,
-        'has_next': page < total_pages,
-        'prev_num': page - 1,
-        'next_num': page + 1
-    }
+    media_paginated = media[start_idx:end_idx]
 
-    return render_template('view_photo.html', photos=photos_paginated, pagination=pagination)
+    return render_template('view_photos.html', media=media_paginated, page=page, total_pages=total_pages)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
