@@ -159,8 +159,8 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
     keyboard = [
-        ['🔍🔍 Cari Pasangan 💖💖'],
-        ['🙎‍♂️🙎‍♀️ Cari berdasarkan Jenis Kelamin 🙎‍♂️🙎‍♀️'],
+        ["🔍🔍 Cari Pasangan 💖💖"],
+        ["🙎‍♂️🙎‍♀️ Cari berdasarkan Jenis Kelamin 🙎‍♂️🙎‍♀️"],
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Pilih opsi:", reply_markup=reply_markup)
