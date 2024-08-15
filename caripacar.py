@@ -158,6 +158,7 @@ async def main_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         await query.edit_message_text('Operasi dibatalkan.')
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
+    
     keyboard = [
         ["🔍🔍 Cari Pasangan 💖💖"],
         ["🙎‍♂️🙎‍♀️ Cari berdasarkan Jenis Kelamin 🙎‍♂️🙎‍♀️"],
@@ -211,6 +212,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(help_message)
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.message.text
+        
+    if text == "🔍🔍 Cari Pasangan 💖💖":
+        await join(update, context)
+    elif text == "🙎‍♂️🙎‍♀️ Cari berdasarkan Jenis Kelamin 🙎‍♂️🙎‍♀️":
+        await update.message.reply_text("Anda memilih untuk mencari berdasarkan jenis kelamin.")
+    else:
+        await update.message.reply_text("Pilihan tidak valid. Silakan pilih opsi yang tersedia.")
+
     user = update.message.from_user
     keyboard = [
         [InlineKeyboardButton("Umur", callback_data='update_age')],
@@ -237,8 +247,6 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
         
-    if update.message.text == "🔍🔍 Cari Pasangan 💖💖":
-        await join(update, context)
 
 async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
