@@ -212,15 +212,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(help_message)
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    text = update.message.text
-        
-    if text == "🔍🔍 Cari Pasangan 💖💖":
-        await join(update, context)
-    elif text == "🙎‍♂️🙎‍♀️ Cari berdasarkan Jenis Kelamin 🙎‍♂️🙎‍♀️":
-        await update.message.reply_text("Anda memilih untuk mencari berdasarkan jenis kelamin.")
-    else:
-        await update.message.reply_text("Pilihan tidak valid. Silakan pilih opsi yang tersedia.")
-
+    
     user = update.message.from_user
     keyboard = [
         [InlineKeyboardButton("Umur", callback_data='update_age')],
@@ -487,7 +479,8 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
                             
         # Menghapus state
         user_settings.pop(user.id, None)
-
+    elif user_input == "🔍🔍 Cari Pasangan 💖💖":
+        await join(update, context)
     else:
         await update.message.reply_text(
             'Anda tidak sedang dalam chat dengan siapapun.\n\n'
