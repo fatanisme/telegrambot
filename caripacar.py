@@ -236,6 +236,9 @@ async def settings_button_handler(update: Update, context: ContextTypes.DEFAULT_
         await query.edit_message_text('Silakan kirimkan nama kota atau kabupaten Anda:')
     elif query.data == 'close':
         await query.edit_message_text('Pengaturan ditutup.')
+        
+    if update.message.text == "🔍🔍 Cari Pasangan 💖💖":
+        await join(update, context)
 
 async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
