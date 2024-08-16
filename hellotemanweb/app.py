@@ -322,7 +322,7 @@ def chats():
 @login_required
 def view_photos():
     page = int(request.args.get('page', 1))
-    per_page = 1
+    per_page = 5
     bot_token = HELLOTEMAN_BOT_TOKEN
 
     # Cari semua dokumen yang memiliki pesan dengan tipe 'photo' atau 'video'
@@ -381,7 +381,7 @@ def view_photos():
 
     media_paginated = media[start_idx:end_idx]
 
-    return render_template('view_photos.html', media=media_paginated, page=page, total_pages=total_pages)
+    return render_template('view_photo.html', media=media_paginated, page=page, total_pages=total_pages)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
