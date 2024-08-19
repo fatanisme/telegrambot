@@ -137,9 +137,6 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)-> N
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="-----------", reply_markup=reply_markup)
 
-async def remove_keyboard(update, context):
-    reply_markup = ReplyKeyboardRemove()
-    await context.bot.send_message(chat_id=update.effective_chat.id,text="-----------", reply_markup=reply_markup)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
@@ -232,7 +229,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await start_chat(update, context)
     else:
         await update.message.reply_text('Anda sedang dalam pencarian pasangan. Ketik /leave untuk keluar dari pencarian pasangan.')
-    await remove_keyboard(update, context)
     
 async def start_chat(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
