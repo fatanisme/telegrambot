@@ -1,5 +1,5 @@
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
 import time
@@ -7,8 +7,8 @@ import time
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
 db = client['telegram_bot']
-users_collection = db['users']
-chats_collection = db['chats']
+users_col = db['users']
+chats_col = db['chats']
 
 def start(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
