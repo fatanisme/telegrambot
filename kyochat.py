@@ -19,7 +19,7 @@ def start(update: Update, context: CallbackContext):
     
     keyboard = [['Find a Partner', 'Find by Gender']]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-    update.message.reply_text('Welcome to the anonymous chat bot! Choose an option:', reply_markup=reply_markup)
+    await update.message.reply_text('Welcome to the anonymous chat bot! Choose an option:', reply_markup=reply_markup)
 
 async def join(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
@@ -28,9 +28,9 @@ async def join(update: Update, context: CallbackContext):
     if user:
         # Add user to chat pool
         # Implement logic for gender-based pairing if needed
-        update.message.reply_text('You have been added to the chat pool. Please wait while we find a partner.')
+        await update.message.reply_text('You have been added to the chat pool. Please wait while we find a partner.')
     else:
-        update.message.reply_text('Please start by using /start command.')
+        await update.message.reply_text('Please start by using /start command.')
 
 async def leave(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
@@ -41,7 +41,7 @@ async def leave(update: Update, context: CallbackContext):
         chats_collection.delete_one({'_id': chat['_id']})
         
         # Notify both users
-        update.message.reply_text('You have left the chat. Please use /join to find a new chat partner.')
+        await update.message.reply_text('You have left the chat. Please use /join to find a new chat partner.')
         context.bot.send_message(chat_id=partner_id, text='Your chat partner has left. Please use /join to find a new chat partner.')
         
         # Provide InlineKeyboard for feedback and reporting
@@ -51,9 +51,9 @@ async def leave(update: Update, context: CallbackContext):
             [InlineKeyboardButton('Report', callback_data='report')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text('Please provide feedback:', reply_markup=reply_markup)
+        await update.message.reply_text('Please provide feedback:', reply_markup=reply_markup)
     else:
-        update.message.reply_text('You are not currently in a chat session.')
+        await update.message.reply_text('You are not currently in a chat session.')
 
 async def next_chat(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
@@ -64,7 +64,7 @@ async def next_chat(update: Update, context: CallbackContext):
         leave(update, context)
         context.bot.send_message(chat_id=partner_id, text='Your chat partner has left. Please use /join to find a new chat partner.')
     else:
-        update.message.reply_text('You are not currently in a chat session.')
+        await update.message.reply_text('You are not currently in a chat session.')
 
 async def settings(update: Update, context: CallbackContext):
     keyboard = [
@@ -74,7 +74,7 @@ async def settings(update: Update, context: CallbackContext):
         [InlineKeyboardButton('Auto-Reconnect', callback_data='auto_reconnect')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Choose a setting to update:', reply_markup=reply_markup)
+    await update.message.reply_text('Choose a setting to update:', reply_markup=reply_markup)
 
 async def button(update: Update, context: CallbackContext):
     query = update.callback_query
