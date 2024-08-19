@@ -1,13 +1,13 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes, CallbackContext
 from pymongo import MongoClient
-from bottokens import CARIPACAR_BOT_TOKEN
+from bottokens import KYOCHAT_BOT_TOKEN
 from datetime import datetime, timedelta
 import random
 
 # Inisialisasi koneksi ke MongoDB
 mongo_client = MongoClient('localhost', 27017)
-db = mongo_client['caripacar_db']
+db = mongo_client['kyochat_db']
 users_collection = db['users']
 chats_collection = db['chats']
 user_pairs_collection = db['user_pairs']
@@ -462,7 +462,7 @@ async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main():
-    application = ApplicationBuilder().token(CARIPACAR_BOT_TOKEN).build()
+    application = ApplicationBuilder().token(KYOCHAT_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
