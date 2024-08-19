@@ -168,8 +168,7 @@ def main():
     application.add_handler(CallbackQueryHandler(feedback_callback, pattern='^(like|dislike|report)$'))
     application.add_handler(CallbackQueryHandler(report_callback, pattern='^(advertising|selling|child_porn|begging|insulting|violence|vulgar|cancel)$'))
     
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
