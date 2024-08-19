@@ -181,7 +181,7 @@ def main():
     application.add_handler(CommandHandler('leave', leave))
     application.add_handler(CommandHandler('next', next_chat))
     application.add_handler(CommandHandler('settings', settings))
-    application.add_handler(MessageHandler(filters.Text & ~filters.command, handle_message))
+    application.add_handler(MessageHandler(filters.Text & ~filters.Command, handle_message))
     application.add_handler(CallbackQueryHandler(button))
 
     application.start_polling()
