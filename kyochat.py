@@ -53,15 +53,23 @@ async def gender_callback(update: Update, context: CallbackContext):
     # Proceed to join chat pool
     join(update, context)
 
-async def join(update: Update, context: CallbackContext):
+async def join(update: Update, context):
     user_id = update.message.from_user.id
-    user = users_col.find_one({'user_id': user_id})
+    user = users_col.find_one({"user_id": user_id})
+
+    if user is None:
+        # If the user doesn't exist in the database, insert a new record
+        users_col.insert_one({"user_id": user_id})
+        user = users_col.find_one({"user_id": user_id})
     
-    # Add to chat pool
-    chats_col.update_one({'user_id': user_id}, {'$set': {'status': 'waiting'}}, upsert=True)
+    # Check if 'gender' exists in the user's record
+    if 'gender' not in user:
+        await update.message.reply_text("Your gender is not set. Please use /settings to set your gender before joining the chat pool.")
+        return
     
-    # Attempt to match with another user
-    match_users(user_id, user['gender'])
+    # Proceed with joining the chat pool if the gender is set
+    await match_users(user_id, user['gender'])
+
 
 async def match_users(user_id, gender):
     # Matching logic based on gender preference
