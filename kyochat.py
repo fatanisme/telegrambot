@@ -173,7 +173,7 @@ async def handle_message(update: Update, context: CallbackContext):
     }
     messages_collection.insert_one(message_data)
 
-async def main():
+def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler('start', start))
