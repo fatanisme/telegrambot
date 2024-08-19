@@ -10,7 +10,7 @@ db = client['telegram_bot']
 users_col = db['users']
 chats_col = db['chats']
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     user = users_col.find_one({'user_id': user_id})
     
@@ -30,17 +30,17 @@ def start(update: Update, context: CallbackContext):
         ['Find a Partner', 'Find by Gender']
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    update.message.reply_text("Welcome to Anonymous Chat Bot! You can start searching for a partner now.", reply_markup=reply_markup)
+    await update.message.reply_text("Welcome to Anonymous Chat Bot! You can start searching for a partner now.", reply_markup=reply_markup)
 
-def gender_selection(update: Update, context: CallbackContext):
+async def gender_selection(update: Update, context: CallbackContext):
     keyboard = [
         [InlineKeyboardButton("Male", callback_data='male')],
         [InlineKeyboardButton("Female", callback_data='female')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please select your gender:', reply_markup=reply_markup)
+    await update.message.reply_text('Please select your gender:', reply_markup=reply_markup)
 
-def gender_callback(update: Update, context: CallbackContext):
+async def gender_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     user_id = query.from_user.id
     gender = query.data
@@ -53,7 +53,7 @@ def gender_callback(update: Update, context: CallbackContext):
     # Proceed to join chat pool
     join(update, context)
 
-def join(update: Update, context: CallbackContext):
+async def join(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     user = users_col.find_one({'user_id': user_id})
     
@@ -63,7 +63,7 @@ def join(update: Update, context: CallbackContext):
     # Attempt to match with another user
     match_users(user_id, user['gender'])
 
-def match_users(user_id, gender):
+async def match_users(user_id, gender):
     # Matching logic based on gender preference
     partner = chats_col.find_one({
         'user_id': {'$ne': user_id},
@@ -78,7 +78,7 @@ def match_users(user_id, gender):
         # No match found yet
         pass
 
-def start_chat(user_id1, user_id2):
+async def start_chat(user_id1, user_id2):
     chat_id = chats_col.insert_one({
         'users': [user_id1, user_id2],
         'start_time': time.time(),
@@ -90,7 +90,7 @@ def start_chat(user_id1, user_id2):
     context.bot.send_message(chat_id=user_id1, text="You have been connected to a chat partner!")
     context.bot.send_message(chat_id=user_id2, text="You have been connected to a chat partner!")
 
-def leave(update: Update, context: CallbackContext):
+async def leave(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     chat = chats_col.find_one({'users': user_id, 'status': 'in_chat'})
     
@@ -101,7 +101,7 @@ def leave(update: Update, context: CallbackContext):
             [InlineKeyboardButton("Report", callback_data='report')]
         ]
         reply_markup = InlineKeyboardMarkup(feedback_keyboard)
-        update.message.reply_text("You have left the chat. How was your experience?", reply_markup=reply_markup)
+        await update.message.reply_text("You have left the chat. How was your experience?", reply_markup=reply_markup)
         
         # Notify partner
         context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the conversation. Use /join to find a new partner.")
@@ -110,7 +110,7 @@ def leave(update: Update, context: CallbackContext):
         chats_col.delete_one({'_id': chat['_id']})
         users_col.update_many({'user_id': {'$in': [user_id, partner_id]}}, {'$set': {'status': 'available'}})
 
-def feedback_callback(update: Update, context: CallbackContext):
+async def feedback_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     user_id = query.from_user.id
     data = query.data
@@ -127,7 +127,7 @@ def feedback_callback(update: Update, context: CallbackContext):
     query.answer()
     query.edit_message_text(text="Thank you for your feedback.")
 
-def report_user(update: Update, context: CallbackContext):
+async def report_user(update: Update, context: CallbackContext):
     keyboard = [
         [InlineKeyboardButton("Advertising", callback_data='advertising')],
         [InlineKeyboardButton("Selling", callback_data='selling')],
@@ -141,7 +141,7 @@ def report_user(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.callback_query.message.reply_text('Select a report reason:', reply_markup=reply_markup)
     
-def report_callback(update: Update, context: CallbackContext):
+async def report_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     report_reason = query.data
     user_id = query.from_user.id
