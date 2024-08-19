@@ -157,17 +157,16 @@ def report_callback(update: Update, context: CallbackContext):
     query.edit_message_text(text="Report submitted. Thank you.")
 
 def main():
-    updater = Updater(KYOCHAT_BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
+    application = ApplicationBuilder().token(CARIPACAR_BOT_TOKEN).build()
     
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("join", join))
-    dp.add_handler(CommandHandler("leave", leave))
-    dp.add_handler(CommandHandler("next", leave))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("join", join))
+    application.add_handler(CommandHandler("leave", leave))
+    application.add_handler(CommandHandler("next", leave))
     
-    dp.add_handler(CallbackQueryHandler(gender_callback, pattern='^(male|female)$'))
-    dp.add_handler(CallbackQueryHandler(feedback_callback, pattern='^(like|dislike|report)$'))
-    dp.add_handler(CallbackQueryHandler(report_callback, pattern='^(advertising|selling|child_porn|begging|insulting|violence|vulgar|cancel)$'))
+    application.add_handler(CallbackQueryHandler(gender_callback, pattern='^(male|female)$'))
+    application.add_handler(CallbackQueryHandler(feedback_callback, pattern='^(like|dislike|report)$'))
+    application.add_handler(CallbackQueryHandler(report_callback, pattern='^(advertising|selling|child_porn|begging|insulting|violence|vulgar|cancel)$'))
     
     updater.start_polling()
     updater.idle()
