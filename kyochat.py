@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, CallbackContext
 from bottokens import KYOCHAT_BOT_TOKEN
 import logging
 
@@ -174,19 +174,17 @@ def handle_message(update: Update, context: CallbackContext):
     messages_collection.insert_one(message_data)
 
 def main():
-    updater = Updater(KYOCHAT_BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
+    application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('join', join))
-    dp.add_handler(CommandHandler('leave', leave))
-    dp.add_handler(CommandHandler('next', next_chat))
-    dp.add_handler(CommandHandler('settings', settings))
-    dp.add_handler(MessageHandler(filters.text & ~filters.command, handle_message))
-    dp.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('join', join))
+    application.add_handler(CommandHandler('leave', leave))
+    application.add_handler(CommandHandler('next', next_chat))
+    application.add_handler(CommandHandler('settings', settings))
+    application.add_handler(MessageHandler(filters.text & ~filters.command, handle_message))
+    application.add_handler(CallbackQueryHandler(button))
 
-    updater.start_polling()
-    updater.idle()
+    application.start_polling()
 
 if __name__ == '__main__':
     main()
