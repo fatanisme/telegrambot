@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackQueryHandler, CallbackContext
 from bottokens import KYOCHAT_BOT_TOKEN
 import logging
 
@@ -182,7 +182,7 @@ def main():
     dp.add_handler(CommandHandler('leave', leave))
     dp.add_handler(CommandHandler('next', next_chat))
     dp.add_handler(CommandHandler('settings', settings))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+    dp.add_handler(MessageHandler(filters.text & ~filters.command, handle_message))
     dp.add_handler(CallbackQueryHandler(button))
 
     updater.start_polling()
