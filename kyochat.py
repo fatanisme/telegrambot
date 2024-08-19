@@ -16,7 +16,7 @@ chats_collection = db['chats']
 messages_collection = db['messages']
 
 
-async def start(update: Update, context: CallbackContext):
+def start(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     users_collection.update_one({'user_id': user_id}, {'$set': {'user_id': user_id}}, upsert=True)
     
