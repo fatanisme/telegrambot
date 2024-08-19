@@ -16,7 +16,7 @@ chats_collection = db['chats']
 messages_collection = db['messages']
 
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     users_collection.update_one({'user_id': user_id}, {'$set': {'user_id': user_id}}, upsert=True)
     
@@ -24,7 +24,7 @@ def start(update: Update, context: CallbackContext):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
     update.message.reply_text('Welcome to the anonymous chat bot! Choose an option:', reply_markup=reply_markup)
 
-def join(update: Update, context: CallbackContext):
+async def join(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     user = users_collection.find_one({'user_id': user_id})
 
@@ -35,7 +35,7 @@ def join(update: Update, context: CallbackContext):
     else:
         update.message.reply_text('Please start by using /start command.')
 
-def leave(update: Update, context: CallbackContext):
+async def leave(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     chat = chats_collection.find_one({'$or': [{'user1': user_id}, {'user2': user_id}]})
 
@@ -58,7 +58,7 @@ def leave(update: Update, context: CallbackContext):
     else:
         update.message.reply_text('You are not currently in a chat session.')
 
-def next_chat(update: Update, context: CallbackContext):
+async def next_chat(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     chat = chats_collection.find_one({'$or': [{'user1': user_id}, {'user2': user_id}]})
 
@@ -69,7 +69,7 @@ def next_chat(update: Update, context: CallbackContext):
     else:
         update.message.reply_text('You are not currently in a chat session.')
 
-def settings(update: Update, context: CallbackContext):
+async def settings(update: Update, context: CallbackContext):
     keyboard = [
         [InlineKeyboardButton('Age', callback_data='set_age')],
         [InlineKeyboardButton('Gender', callback_data='set_gender')],
@@ -79,7 +79,7 @@ def settings(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('Choose a setting to update:', reply_markup=reply_markup)
 
-def button(update: Update, context: CallbackContext):
+async def button(update: Update, context: CallbackContext):
     query = update.callback_query
     data = query.data
     user_id = query.from_user.id
@@ -135,7 +135,7 @@ def button(update: Update, context: CallbackContext):
     if data == 'report_cancel':
         query.edit_message_text(text="Report cancelled.")
 
-def handle_message(update: Update, context: CallbackContext):
+async def handle_message(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
     message_type = 'text'
@@ -173,7 +173,7 @@ def handle_message(update: Update, context: CallbackContext):
     }
     messages_collection.insert_one(message_data)
 
-def main():
+async def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler('start', start))
