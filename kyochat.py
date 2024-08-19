@@ -5,9 +5,6 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from bottokens import KYOCHAT_BOT_TOKEN
 import logging
 
-# Setup logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
 db = client['telegram_bot']
