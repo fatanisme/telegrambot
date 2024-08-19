@@ -157,7 +157,7 @@ def report_callback(update: Update, context: CallbackContext):
     query.edit_message_text(text="Report submitted. Thank you.")
 
 def main():
-    application = ApplicationBuilder().token(CARIPACAR_BOT_TOKEN).build()
+    application = ApplicationBuilder().token(KYOCHAT_BOT_TOKEN).build()
     
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("join", join))
