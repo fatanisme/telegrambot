@@ -44,9 +44,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Use /join to find a new partner.",reply_markup=reply_markup)
 
 async def remove_reply_keyboard_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Mengambil pesan yang ada
-    message = update.message
-    if message:
+    
         # Memperbarui pesan dengan menghapus reply keyboard
         await update.message.reply_text(
             "-",
