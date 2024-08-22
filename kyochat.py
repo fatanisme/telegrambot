@@ -120,6 +120,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = users_collection.find_one({'user_id': user_id})
     user_type = user.get('user_type') if user else None
     
+    if message.text == "Find a Partner":
+        await join(update, context)
+    elif message.text == "Find a Male":
+        if user_type == 'premium':
+            await join(update, context, gender='Male')
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+    elif message.text == "Find a Female":
+        if user_type == 'premium':
+            await join(update, context, gender='Female')
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+    elif message.text == "Find by Gender":
+        if user_type == 'premium':
+            await update.message.reply_text("Please specify the gender: Male or Female.")
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+    
     if not chat:
         await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
         return
@@ -147,25 +165,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
     else:
         pass
-    
-    if message.text == "Find a Partner":
-        await join(update, context)
-    elif message.text == "Find a Male":
-        if user_type == 'premium':
-            await join(update, context, gender='Male')
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-    elif message.text == "Find a Female":
-        if user_type == 'premium':
-            await join(update, context, gender='Female')
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-    elif message.text == "Find by Gender":
-        if user_type == 'premium':
-            await update.message.reply_text("Please specify the gender: Male or Female.")
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
