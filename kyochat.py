@@ -1,66 +1,55 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
+from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
-import pymongo
-from datetime import datetime
-import re
 
-# Setup MongoDB connection
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["anonymous_chat_db"]
-users_collection = db["users"]
-waiting_users = db["waiting_users"]
-active_chats = db["active_chats"]
+# MongoDB setup
+client = MongoClient('mongodb://localhost:27017/')
+db = client['telegram_bot']
+users_collection = db['users']
+active_chats_collection = db['active_chats']
+waiting_users_collection = db['waiting_users']
 
-# Command /start to register user
+# Define command handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_data = {
-        "user_id": str(update.message.chat_id),
-        "username": update.message.from_user.username,
-        "first_name": update.message.from_user.first_name,
-        "last_name": update.message.from_user.last_name
-    }
-    users_collection.update_one({"user_id": user_data["user_id"]}, {"$set": user_data}, upsert=True)
-    await update.message.reply_text("Welcome to Anonymous Chat! Your data has been saved. Use /join to find a chat partner or /settings to configure your preferences.")
+    user = update.effective_user
+    users_collection.update_one(
+        {'user_id': user.id},
+        {'$set': {'user_id': user.id, 'username': user.username, 'first_name': user.first_name, 'last_name': user.last_name}},
+        upsert=True
+    )
+    await update.message.reply_text("Welcome! Use /settings to set your preferences.")
 
-# Command /settings to display settings menu
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("Gender", callback_data='set_gender')],
-        [InlineKeyboardButton("Age", callback_data='set_age')],
-        [InlineKeyboardButton("City", callback_data='set_city')],
-        [InlineKeyboardButton("Language", callback_data='set_language')],
+        [InlineKeyboardButton("Gender", callback_data='gender')],
+        [InlineKeyboardButton("Age", callback_data='age')],
+        [InlineKeyboardButton("City", callback_data='city')],
+        [InlineKeyboardButton("Language", callback_data='language')],
+        [InlineKeyboardButton("Back", callback_data='back')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Please choose a setting to update:", reply_markup=reply_markup)
+    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
 
-# Callback function for /settings options
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    if query.data == 'set_gender':
+    if query.data == 'gender':
         keyboard = [
             [InlineKeyboardButton("Male", callback_data='gender_male')],
             [InlineKeyboardButton("Female", callback_data='gender_female')],
-            [InlineKeyboardButton("⬅️ Back", callback_data='back_to_settings')]
+            [InlineKeyboardButton("Back", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text="Please choose your gender:", reply_markup=reply_markup)
-
-    elif query.data == 'set_age':
-        await query.edit_message_text(text="Please enter your age (1-99):", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("⬅️ Back", callback_data='back_to_settings')]
-        ]))
-        context.user_data['setting'] = 'age'
-
-    elif query.data == 'set_city':
-        await query.edit_message_text(text="Please enter your city:", reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("⬅️ Back", callback_data='back_to_settings')]
-        ]))
-        context.user_data['setting'] = 'city'
-
-    elif query.data == 'set_language':
+        await query.edit_message_text(text="Select your gender:", reply_markup=reply_markup)
+    elif query.data == 'age':
+        await query.edit_message_text(text="Please enter your age (1-99):")
+        return
+    elif query.data == 'city':
+        await query.edit_message_text(text="Please enter your city:")
+        return
+    elif query.data == 'language':
         keyboard = [
             [InlineKeyboardButton("English", callback_data='language_english')],
             [InlineKeyboardButton("Indonesian", callback_data='language_indonesian')],
@@ -68,64 +57,45 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("Spanish", callback_data='language_spanish')],
             [InlineKeyboardButton("Turkish", callback_data='language_turkish')],
             [InlineKeyboardButton("Korean", callback_data='language_korean')],
-            [InlineKeyboardButton("⬅️ Back", callback_data='back_to_settings')]
+            [InlineKeyboardButton("Back", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text="Please choose your language:", reply_markup=reply_markup)
-
-    elif query.data == 'back_to_settings':
+        await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
+    elif query.data == 'back':
         await settings(update, context)
 
-    elif query.data.startswith('gender_'):
-        gender = query.data.split('_')[1]
-        users_collection.update_one({"user_id": str(query.message.chat_id)}, {"$set": {"gender": gender}})
-        await query.edit_message_text(text=f"Gender set to {gender}.", reply_markup=None)
-
-    elif query.data.startswith('language_'):
-        language = query.data.split('_')[1]
-        users_collection.update_one({"user_id": str(query.message.chat_id)}, {"$set": {"language": language}})
-        await query.edit_message_text(text=f"Language set to {language}.", reply_markup=None)
+async def handle_settings_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+    if 'age' in context.user_data:
+        age = update.message.text
+        if age.isdigit() and 1 <= int(age) <= 99:
+            users_collection.update_one(
+                {'user_id': user.id},
+                {'$set': {'age': int(age)}}
+            )
+            await update.message.reply_text("Age updated successfully!")
+        else:
+            await update.message.reply_text("Please enter a valid age between 1 and 99.")
+        del context.user_data['age']
+    elif 'city' in context.user_data:
+        city = update.message.text
+        users_collection.update_one(
+            {'user_id': user.id},
+            {'$set': {'city': city}}
+        )
+        await update.message.reply_text("City updated successfully!")
+        del context.user_data['city']
+    else:
+        await update.message.reply_text("Invalid input. Please use /settings to update your preferences.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if 'setting' in context.user_data:
-        user_id = str(update.message.chat_id)
-        setting = context.user_data.pop('setting')
-
-        if setting == 'age':
-            if re.match(r'^\d+$', update.message.text) and 1 <= int(update.message.text) <= 99:
-                users_collection.update_one({"user_id": user_id}, {"$set": {"age": int(update.message.text)}})
-                await update.message.reply_text(f"Age set to {update.message.text}.", reply_markup=ReplyKeyboardRemove())
-                await settings(update, context)
-            else:
-                await update.message.reply_text("Please enter a valid age between 1 and 99.")
-        
-        elif setting == 'city':
-            users_collection.update_one({"user_id": user_id}, {"$set": {"city": update.message.text}})
-            await update.message.reply_text(f"City set to {update.message.text}.", reply_markup=ReplyKeyboardRemove())
-            await settings(update, context)
-        return
-
-    user_id = str(update.message.chat_id)
-    chat = active_chats.find_one({"user_id": user_id})
+    user_id = update.message.from_user.id
+    chat = active_chats_collection.find_one({"user_id": user_id})
 
     if chat:
         partner_id = chat["partner_id"]
         message = update.message
 
-        # Save message to chat history in MongoDB
-        active_chats.update_one(
-            {"user_id": user_id},
-            {"$push": {
-                "messages": {
-                    "sender_id": user_id,
-                    "message_type": message.content_type,
-                    "message": message.to_dict(),
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                }
-            }}
-        )
-
-        # Forward the message to the partner
         if message.text:
             await context.bot.send_message(chat_id=partner_id, text=message.text)
         elif message.sticker:
@@ -138,58 +108,84 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_video(chat_id=partner_id, video=message.video.file_id)
         elif message.document:
             await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
+        elif message.photo:
+            await context.bot.send_photo(chat_id=partner_id, photo=message.photo.file_id)
         elif message.forward_from:
-            await context.bot.send_message(chat_id=partner_id, text=f"Forwarded message:\n{message.text}")
-        # Add handling for other message types if needed
+            await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
+        else:
+            pass
 
-# Anonymous Chat functions
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == 'gender_male' or data == 'gender_female':
+        users_collection.update_one(
+            {'user_id': query.from_user.id},
+            {'$set': {'gender': 'Male' if data == 'gender_male' else 'Female'}}
+        )
+        await query.edit_message_text(text="Gender updated successfully!")
+    elif data.startswith('language_'):
+        language = data.split('_')[1]
+        users_collection.update_one(
+            {'user_id': query.from_user.id},
+            {'$set': {'language': language}}
+        )
+        await query.edit_message_text(text=f"Language set to {language.capitalize()}!")
+    elif data == 'back':
+        await settings(update, context)
+
+async def handle_user_left(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    active_chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
+    if active_chat:
+        partner_id = active_chat["partner_id"] if active_chat["user_id"] == user_id else active_chat["user_id"]
+        await context.bot.send_message(
+            chat_id=partner_id,
+            text="Your partner has left the chat. Use /join to find a new partner."
+        )
+        active_chats_collection.delete_one({"_id": active_chat["_id"]})
+
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.message.chat_id)
-
-    if waiting_users.count_documents({}) > 0:
-        partner_id = waiting_users.find_one()["user_id"]
-        waiting_users.delete_one({"user_id": partner_id})
-
-        chatroom_id = user_id + partner_id
-        active_chats.insert_one({"user_id": user_id, "partner_id": partner_id, "chatroom_id": chatroom_id, "messages": []})
-
-        await context.bot.send_message(chat_id=user_id, text="You have been connected to a chat partner!")
-        await context.bot.send_message(chat_id=partner_id, text="You have been connected to a chat partner!")
+    user_id = update.message.from_user.id
+    waiting_users_collection.update_one(
+        {'user_id': user_id},
+        {'$set': {'user_id': user_id}},
+        upsert=True
+    )
+    available_user = waiting_users_collection.find_one({'user_id': {'$ne': user_id}})
+    if available_user:
+        partner_id = available_user['user_id']
+        active_chats_collection.insert_one({
+            'user_id': user_id,
+            'partner_id': partner_id,
+            'chatroom_id': f"{user_id}{partner_id}"
+        })
+        active_chats_collection.insert_one({
+            'user_id': partner_id,
+            'partner_id': user_id,
+            'chatroom_id': f"{partner_id}{user_id}"
+        })
+        waiting_users_collection.delete_many({'user_id': {'$in': [user_id, partner_id]}})
+        await context.bot.send_message(chat_id=user_id, text="You are now connected with a partner.")
+        await context.bot.send_message(chat_id=partner_id, text="You are now connected with a partner.")
     else:
-        waiting_users.insert_one({"user_id": user_id})
-        await update.message.reply_text("Waiting for a chat partner...")
+        await update.message.reply_text("Waiting for a partner. Please wait...")
 
-async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.message.chat_id)
-    chat = active_chats.find_one({"user_id": user_id})
-
-    if chat:
-        partner_id = chat["partner_id"]
-        active_chats.delete_one({"user_id": user_id})
-
-        await context.bot.send_message(chat_id=partner_id, text="Your partner has left the chat. Use /join to find a new partner.")
-        await update.message.reply_text("You have left the chat.")
-    else:
-        waiting_users.delete_one({"user_id": user_id})
-        await update.message.reply_text("You have been removed from the waiting list.")
-
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Sorry, I didn't understand that command.")
-
-# Main function to run the bot
 def main():
-    app = ApplicationBuilder().token(KYOCHAT_BOT_TOKEN).build()
+    application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("join", join))
-    app.add_handler(CommandHandler("stop", stop))
-    app.add_handler(CommandHandler("settings", settings))
-    app.add_handler(CallbackQueryHandler(button))
-    app.add_handler(MessageHandler(filters.TEXT | filters.STICKER | filters.ANIMATION | filters.VOICE | filters.VIDEO | filters.DOCUMENT, handle_message))
-    app.add_handler(MessageHandler(filters.COMMAND, unknown))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("settings", settings))
+    application.add_handler(CommandHandler("join", join))
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    application.add_handler(CallbackQueryHandler(handle_settings_choice))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_settings_input))
+    application.add_handler(MessageHandler(filters.LEFT_CHAT_MEMBER, handle_user_left))
+    application.add_handler(CallbackQueryHandler(handle_callback))
 
-    print("Bot is running...")
-    app.run_polling()
+    application.run_polling()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
