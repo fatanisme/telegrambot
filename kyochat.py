@@ -48,9 +48,8 @@ async def remove_reply_keyboard_from_message(update: Update, context: ContextTyp
     message = update.message
     if message:
         # Memperbarui pesan dengan menghapus reply keyboard
-        await context.bot.edit_message_reply_markup(
-            chat_id=message.chat_id,
-            message_id=message.message_id,
+        await update.message.reply_text(
+            "-",
             reply_markup=ReplyKeyboardRemove()
         )
 
