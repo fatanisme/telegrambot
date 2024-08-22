@@ -22,8 +22,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await keyboard_markup(update,context)
     
-    await update.message.reply_text("Use /join to set your preferences.")
-
 async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_id = update.message.from_user.id
