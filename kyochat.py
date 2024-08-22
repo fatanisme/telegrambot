@@ -168,13 +168,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    user = waiting_users_collection.find_one({"user_id": user_id})
-    
-    if not user:
-        # User not in waiting queue
-        await update.message.reply_text("You are not in the waiting queue.")
-        return
-    
+        
     # Find a partner from waiting_users who is not the same as the user
     partner = waiting_users_collection.find_one({"user_id": {"$ne": user_id}})
     
