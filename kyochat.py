@@ -218,7 +218,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await keyboard_markup(update,context)
     await context.bot.send_message(
         chat_id=partner_id,
-        text="Please choose an option:",
         reply_markup=ReplyKeyboardMarkup(
             [[KeyboardButton("Find a Partner"), KeyboardButton("Find by Gender")]],
             resize_keyboard=True,
