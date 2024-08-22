@@ -214,12 +214,18 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Notify both users
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
-    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.",reply_markup=ReplyKeyboardMarkup(
+    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
+    await keyboard_markup(update,context)
+    await context.bot.send_message(
+        chat_id=partner_id,
+        text="Please choose an option:",
+        reply_markup=ReplyKeyboardMarkup(
             [[KeyboardButton("Find a Partner"), KeyboardButton("Find by Gender")]],
             resize_keyboard=True,
             one_time_keyboard=True
-        ))
-    await keyboard_markup(update,context)
+        )
+    )
+
     
     
     # Remove the user from active_chats
