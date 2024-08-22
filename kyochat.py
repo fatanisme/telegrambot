@@ -26,7 +26,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("Age", callback_data='age')],
         [InlineKeyboardButton("City", callback_data='city')],
         [InlineKeyboardButton("Language", callback_data='language')],
-        [InlineKeyboardButton("Back", callback_data='back')]
+        [InlineKeyboardButton("Back ⬅️", callback_data='back')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
