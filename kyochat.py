@@ -20,9 +20,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
     
-    await keyboard_markup(context)
+    await keyboard_markup(update,context)
     
-    await update.message.reply_text("Welcome! Use /settings to set your preferences.")
+    await update.message.reply_text("Use /join to set your preferences.")
 
 async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -43,7 +43,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-    await context.message.reply_text(reply_markup=reply_markup)
+    await update.message.reply_text("Use /join to find a new partner.",reply_markup=reply_markup)
 
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -204,9 +204,9 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_chats_collection.delete_one({"_id": chat['_id']})
     
     # Notify both users
-    await context.bot.send_message(chat_id=user_id, text="You have left the chat. Please use /join to find a new partner.")
-    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Please use /join to find a new partner.")
-    
+    await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
+    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
+    await keyboard_markup(update,context)
     
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
