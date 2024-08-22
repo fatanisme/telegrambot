@@ -46,7 +46,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def remove_reply_keyboard_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
         # Memperbarui pesan dengan menghapus reply keyboard
-        await context.bot.send_message(
+        await update.message.reply_text(
             "Waiting for a partner ...",
             reply_markup=ReplyKeyboardRemove()
         )
@@ -213,8 +213,8 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_chats_collection.delete_one({"_id": chat['_id']})
     
     # Notify both users
-    await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
-    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
+    await update.message.reply_text(chat_id=user_id, text="You have left the chat.")
+    await update.message.reply_text(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     await keyboard_markup(update,context)
     
     # Remove the user from active_chats
@@ -259,8 +259,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         
         # Notify both users
         await remove_reply_keyboard_from_message(update, context)
-        await context.bot.edit_message_text(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
-        await context.bot.edit_message_text(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
+        await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
+        await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
         
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
