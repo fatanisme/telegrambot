@@ -122,7 +122,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     message = update.message
     
-    if chat is none:
+    if chat is None:
         if message.text == "Find a Partner":
             await join(update, context)
         elif message.text == "Find a Male":
