@@ -213,8 +213,8 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_chats_collection.delete_one({"_id": chat['_id']})
     
     # Notify both users
-    await update.message.reply_text(chat_id=user_id, text="You have left the chat.")
-    await update.message.reply_text(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
+    await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
+    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     await keyboard_markup(update,context)
     
     # Remove the user from active_chats
