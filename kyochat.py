@@ -19,6 +19,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         {'$set': {'user_id': user.id, 'username': user.username, 'first_name': user.first_name, 'last_name': user.last_name}},
         upsert=True
     )
+    
+    keyboard_markup(context)
+    
     await update.message.reply_text("Welcome! Use /settings to set your preferences.")
 
 async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,7 +43,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+    await update.message.reply_text(reply_markup=reply_markup)
 
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
