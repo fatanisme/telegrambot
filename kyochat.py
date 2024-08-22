@@ -5,7 +5,7 @@ from bottokens import KYOCHAT_BOT_TOKEN
 
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
-db = client['telegram_bot']
+db = client['kyochat_db']
 users_collection = db['users']
 active_chats_collection = db['active_chats']
 waiting_users_collection = db['waiting_users']
