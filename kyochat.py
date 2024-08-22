@@ -46,7 +46,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def remove_reply_keyboard_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
         # Memperbarui pesan dengan menghapus reply keyboard
-        await update.message.reply_text(
+        await context.bot.send_message(
             "Waiting for a partner ...",
             reply_markup=ReplyKeyboardRemove()
         )
