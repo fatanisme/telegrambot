@@ -132,18 +132,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat is None:
         if message.text == "Find a Partner":
             await join(update, context)
-            await remove_reply_keyboard_from_message(update, context)
             
         elif message.text == "Find a Male":
             if user_type == 'premium':
                 await join(update, context, gender='Male')
-                await remove_reply_keyboard_from_message(update, context)
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif message.text == "Find a Female":
             if user_type == 'premium':
                 await join(update, context, gender='Female')
-                await remove_reply_keyboard_from_message(update, context)
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif message.text == "Find by Gender":
