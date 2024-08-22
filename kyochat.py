@@ -160,10 +160,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat. Please use /join to find a new partner.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Please use /join to find a new partner.")
     
-    # Remove user from waiting_users collection
-    waiting_users_collection.update_one({"user_id": user_id}, {"$set": {"status": "waiting"}})
-    if not waiting_users_collection.find_one({"user_id": partner_id}):
-        waiting_users_collection.insert_one({"user_id": partner_id, "status": "waiting"})
     
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
