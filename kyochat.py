@@ -22,9 +22,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     # Fetch user type from the database
-    user = users_collection.find_one({'user_id': user_id})
+    users = users_collection.find_one({'user_id': user_id})
     
-    if user and user.get('user_type') == 'premium':
+    if users and users.get('user_type') == 'premium':
         keyboard = [
             [KeyboardButton("Find a Partner")],
             [KeyboardButton("Find a Male"), KeyboardButton("Find a Female")]
