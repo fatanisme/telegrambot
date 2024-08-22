@@ -47,7 +47,7 @@ async def remove_reply_keyboard_from_message(update: Update, context: ContextTyp
     
         # Memperbarui pesan dengan menghapus reply keyboard
         await update.message.reply_text(
-            "-",
+            "Waiting for a partner ...",
             reply_markup=ReplyKeyboardRemove()
         )
 
@@ -258,9 +258,9 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         })
         
         # Notify both users
+        await remove_reply_keyboard_from_message(update, context)
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
         await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
-        await remove_reply_keyboard_from_message(update, context)
         
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
@@ -273,7 +273,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
         await remove_reply_keyboard_from_message(update, context)
-        await context.bot.edit_message_text("You are now in the waiting queue. You will be matched with a partner soon.")
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
