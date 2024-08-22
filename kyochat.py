@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
@@ -39,7 +39,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         keyboard = [
             [InlineKeyboardButton("Male", callback_data='gender_male')],
             [InlineKeyboardButton("Female", callback_data='gender_female')],
-            [InlineKeyboardButton("Back", callback_data='back')]
+            [InlineKeyboardButton("Back ⬅️", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Select your gender:", reply_markup=reply_markup)
@@ -57,7 +57,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             [InlineKeyboardButton("Spanish", callback_data='language_spanish')],
             [InlineKeyboardButton("Turkish", callback_data='language_turkish')],
             [InlineKeyboardButton("Korean", callback_data='language_korean')],
-            [InlineKeyboardButton("Back", callback_data='back')]
+            [InlineKeyboardButton("Back ⬅️", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
@@ -136,7 +136,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'back':
         await settings(update, context)
 
-async def handle_user_left(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     active_chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     if active_chat:
@@ -146,6 +146,12 @@ async def handle_user_left(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="Your partner has left the chat. Use /join to find a new partner."
         )
         active_chats_collection.delete_one({"_id": active_chat["_id"]})
+        waiting_users_collection.update_one(
+            {'user_id': user_id},
+            {'$set': {'user_id': user_id}},
+            upsert=True
+        )
+        await update.message.reply_text("You have left the chat. Use /join to find a new partner.")
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -173,21 +179,16 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Waiting for a partner. Please wait...")
 
-async def handle_chat_member_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_member = update.chat_member
-    if chat_member.new_chat_member.status == 'left_chat_member':
-        await handle_user_left(update, context)
-
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("settings", settings))
     application.add_handler(CommandHandler("join", join))
+    application.add_handler(CommandHandler("leave", leave))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_settings_input))
-    application.add_handler(MessageHandler(filters.ALL, handle_chat_member_update))  # Handle chat member updates
 
     application.run_polling()
 
