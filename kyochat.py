@@ -20,7 +20,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
     
-    await keyboard_markup(update,context)
+    await keyboard_markup(context)
     
     await update.message.reply_text("Welcome! Use /settings to set your preferences.")
 
@@ -43,7 +43,7 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-    await update.message.reply_text(reply_markup=reply_markup)
+    await context.message.reply_text(reply_markup=reply_markup)
 
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
