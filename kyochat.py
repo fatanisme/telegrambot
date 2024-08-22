@@ -93,33 +93,38 @@ async def handle_settings_input(update: Update, context: ContextTypes.DEFAULT_TY
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
-
-    if chat:
-        if chat['user_id'] == user_id:
-            partner_id = chat['partner_id']
-        else:
-            partner_id = chat['user_id']
-        
-        # Handle different types of messages
-        message = update.message
-        if message.text:
-            await context.bot.send_message(chat_id=partner_id, text=message.text)
-        elif message.sticker:
-            await context.bot.send_sticker(chat_id=partner_id, sticker=message.sticker.file_id)
-        elif message.animation:
-            await context.bot.send_animation(chat_id=partner_id, animation=message.animation.file_id)
-        elif message.voice:
-            await context.bot.send_voice(chat_id=partner_id, voice=message.voice.file_id)
-        elif message.video:
-            await context.bot.send_video(chat_id=partner_id, video=message.video.file_id)
-        elif message.document:
-            await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
-        elif message.photo:
-            await context.bot.send_photo(chat_id=partner_id, photo=message.photo.file_id)
-        elif message.forward_from:
-            await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
-        else:
-            pass
+    
+    # Check if the user is in an active chat
+    if not chat:
+        await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
+        return
+    
+    # Determine the partner ID
+    if chat['user_id'] == user_id:
+        partner_id = chat['partner_id']
+    else:
+        partner_id = chat['user_id']
+    
+    # Handle different types of messages
+    message = update.message
+    if message.text:
+        await context.bot.send_message(chat_id=partner_id, text=message.text)
+    elif message.sticker:
+        await context.bot.send_sticker(chat_id=partner_id, sticker=message.sticker.file_id)
+    elif message.animation:
+        await context.bot.send_animation(chat_id=partner_id, animation=message.animation.file_id)
+    elif message.voice:
+        await context.bot.send_voice(chat_id=partner_id, voice=message.voice.file_id)
+    elif message.video:
+        await context.bot.send_video(chat_id=partner_id, video=message.video.file_id)
+    elif message.document:
+        await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
+    elif message.photo:
+        await context.bot.send_photo(chat_id=partner_id, photo=message.photo.file_id)
+    elif message.forward_from:
+        await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
+    else:
+        pass
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
