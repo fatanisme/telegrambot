@@ -263,7 +263,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         # Notify both users
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
         await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
-        await update.message.reply_text("-")
         await remove_reply_keyboard_from_message(update, context)
         
         # Remove user from waiting_users collection
@@ -277,7 +276,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
         await update.message.reply_text("You are now in the waiting queue. You will be matched with a partner soon.")
-        await update.message.reply_text("-")
         await remove_reply_keyboard_from_message(update, context)
         
 def main():
