@@ -45,9 +45,11 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text(text="Select your gender:", reply_markup=reply_markup)
     elif query.data == 'age':
         await query.edit_message_text(text="Please enter your age (1-99):")
+        context.user_data['age'] = True
         return
     elif query.data == 'city':
         await query.edit_message_text(text="Please enter your city:")
+        context.user_data['city'] = True
         return
     elif query.data == 'language':
         keyboard = [
@@ -90,12 +92,16 @@ async def handle_settings_input(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    chat = active_chats_collection.find_one({"user_id": user_id})
+    chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
 
     if chat:
-        partner_id = chat["partner_id"]
+        if chat['user_id'] == user_id:
+            partner_id = chat['partner_id']
+        else:
+            partner_id = chat['user_id']
+        
+        # Handle different types of messages
         message = update.message
-
         if message.text:
             await context.bot.send_message(chat_id=partner_id, text=message.text)
         elif message.sticker:
@@ -141,17 +147,25 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     if active_chat:
         partner_id = active_chat["partner_id"] if active_chat["user_id"] == user_id else active_chat["user_id"]
+        
+        # Notify partner and remove chat
         await context.bot.send_message(
             chat_id=partner_id,
             text="Your partner has left the chat. Use /join to find a new partner."
         )
+        
+        # Delete chat from active chats
         active_chats_collection.delete_one({"_id": active_chat["_id"]})
+        
+        # Add user back to waiting users
         waiting_users_collection.update_one(
             {'user_id': user_id},
             {'$set': {'user_id': user_id}},
             upsert=True
         )
         await update.message.reply_text("You have left the chat. Use /join to find a new partner.")
+    else:
+        await update.message.reply_text("You are not in an active chat.")
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -160,20 +174,23 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
         {'$set': {'user_id': user_id}},
         upsert=True
     )
+    
+    # Find a partner from waiting users
     available_user = waiting_users_collection.find_one({'user_id': {'$ne': user_id}})
     if available_user:
         partner_id = available_user['user_id']
-        active_chats_collection.insert_one({
-            'user_id': user_id,
-            'partner_id': partner_id,
-            'chatroom_id': f"{user_id}{partner_id}"
-        })
-        active_chats_collection.insert_one({
-            'user_id': partner_id,
-            'partner_id': user_id,
-            'chatroom_id': f"{partner_id}{user_id}"
-        })
+        chatroom_id = f"{user_id}{partner_id}"
+        
+        # Create chats
+        active_chats_collection.insert_many([
+            {'user_id': user_id, 'partner_id': partner_id, 'chatroom_id': chatroom_id},
+            {'user_id': partner_id, 'partner_id': user_id, 'chatroom_id': chatroom_id}
+        ])
+        
+        # Remove users from waiting list
         waiting_users_collection.delete_many({'user_id': {'$in': [user_id, partner_id]}})
+        
+        # Notify both users
         await context.bot.send_message(chat_id=user_id, text="You are now connected with a partner.")
         await context.bot.send_message(chat_id=partner_id, text="You are now connected with a partner.")
     else:
@@ -181,15 +198,21 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("settings", settings))
-    application.add_handler(CommandHandler("join", join))
-    application.add_handler(CommandHandler("leave", leave))
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    
+    # Command handlers
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('settings', settings))
+    application.add_handler(CommandHandler('leave', leave))
+    application.add_handler(CommandHandler('join', join))
+    
+    # Message handlers
+    application.add_handler(MessageHandler(filters.TEXT | filters.STICKER | filters.ANIMATION | filters.VOICE | filters.VIDEO | filters.DOCUMENT | filters.PHOTO | filters.FORWARD, handle_message))
+    
+    # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_settings_input))
-
+    application.add_handler(CallbackQueryHandler(handle_callback))
+    
+    # Start the bot
     application.run_polling()
 
 if __name__ == '__main__':
