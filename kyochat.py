@@ -140,8 +140,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Please specify the gender: Male or Female.")
         else:
             await update.message.reply_text("This feature is available for premium users only.")
-    
-    if not chat:
+    elif not chat:
         await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
         return
     
