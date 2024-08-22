@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
@@ -43,6 +43,16 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await update.message.reply_text("Use /join to find a new partner.",reply_markup=reply_markup)
 
+async def remove_reply_keyboard_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Mengambil pesan yang ada
+    message = update.message
+    if message:
+        # Memperbarui pesan dengan menghapus reply keyboard
+        await context.bot.edit_message_reply_markup(
+            chat_id=message.chat_id,
+            message_id=message.message_id,
+            reply_markup=ReplyKeyboardRemove()
+        )
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -125,14 +135,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat is None:
         if message.text == "Find a Partner":
             await join(update, context)
+            await remove_reply_keyboard_from_message(update, context)
+            
         elif message.text == "Find a Male":
             if user_type == 'premium':
                 await join(update, context, gender='Male')
+                await remove_reply_keyboard_from_message(update, context)
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif message.text == "Find a Female":
             if user_type == 'premium':
                 await join(update, context, gender='Female')
+                await remove_reply_keyboard_from_message(update, context)
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif message.text == "Find by Gender":
@@ -249,6 +263,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         # Notify both users
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
         await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
+        await update.message.reply_text("-")
+        await remove_reply_keyboard_from_message(update, context)
         
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
@@ -261,6 +277,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
         await update.message.reply_text("You are now in the waiting queue. You will be matched with a partner soon.")
+        await update.message.reply_text("-")
+        await remove_reply_keyboard_from_message(update, context)
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
