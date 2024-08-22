@@ -144,18 +144,24 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    active_chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
-    if active_chat:
-        partner_id = active_chat["partner_id"] if active_chat["user_id"] == user_id else active_chat["user_id"]
+    chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
+    
+    if chat:
+        # Determine the partner ID
+        partner_id = chat["partner_id"] if chat["user_id"] == user_id else chat["user_id"]
         
-        # Notify partner and remove chat
+        # Notify both users
+        await context.bot.send_message(
+            chat_id=user_id,
+            text="You have left the chat. Use /join to find a new partner."
+        )
         await context.bot.send_message(
             chat_id=partner_id,
             text="Your partner has left the chat. Use /join to find a new partner."
         )
         
-        # Delete chat from active chats
-        active_chats_collection.delete_one({"_id": active_chat["_id"]})
+        # Remove the chat from active chats
+        active_chats_collection.delete_many({"chatroom_id": chat["chatroom_id"]})
         
         # Add user back to waiting users
         waiting_users_collection.update_one(
@@ -163,7 +169,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             {'$set': {'user_id': user_id}},
             upsert=True
         )
-        await update.message.reply_text("You have left the chat. Use /join to find a new partner.")
     else:
         await update.message.reply_text("You are not in an active chat.")
 
@@ -207,6 +212,7 @@ def main():
     
     # Message handlers
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
     application.add_handler(CallbackQueryHandler(handle_callback))
