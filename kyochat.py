@@ -273,7 +273,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
         await remove_reply_keyboard_from_message(update, context)
-        await update.edit_message_text("You are now in the waiting queue. You will be matched with a partner soon.")
+        await context.bot.edit_message_text("You are now in the waiting queue. You will be matched with a partner soon.")
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
