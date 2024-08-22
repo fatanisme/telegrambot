@@ -259,8 +259,8 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         
         # Notify both users
         await remove_reply_keyboard_from_message(update, context)
-        await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
-        await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
+        await context.bot.edit_message_text(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
+        await context.bot.edit_message_text(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
         
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
