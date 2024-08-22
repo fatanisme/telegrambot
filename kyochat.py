@@ -12,7 +12,14 @@ waiting_users_collection = db['waiting_users']
 
 # Define command handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
+    user = update.effective_user
+    user_id = user.id
+    
+    users_collection.update_one(
+        {'user_id': user.id},
+        {'$set': {'user_id': user.id, 'username': user.username, 'first_name': user.first_name, 'last_name': user.last_name}},
+        upsert=True
+    )
     
     # Fetch user type from the database
     user = users_collection.find_one({'user_id': user_id})
@@ -30,12 +37,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text( reply_markup=reply_markup)
-    
-    users_collection.update_one(
-        {'user_id': user.id},
-        {'$set': {'user_id': user.id, 'username': user.username, 'first_name': user.first_name, 'last_name': user.last_name}},
-        upsert=True
-    )
     
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
