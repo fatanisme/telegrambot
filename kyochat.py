@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+    await update.message.reply_text( reply_markup=reply_markup)
     
     users_collection.update_one(
         {'user_id': user.id},
