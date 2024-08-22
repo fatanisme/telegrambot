@@ -93,6 +93,8 @@ async def handle_settings_input(update: Update, context: ContextTypes.DEFAULT_TY
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
+    user = users_collection.find_one({'user_id': user_id})
+    user_type = user.get('user_type') if user else None
     
     if not chat:
         await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
@@ -121,6 +123,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
     else:
         pass
+    
+    if message.text == "Find a Partner":
+        await join(update, context)
+    elif message.text == "Find a Male":
+        if user_type == 'premium':
+            await join(update, context, gender='Male')
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+    elif message.text == "Find a Female":
+        if user_type == 'premium':
+            await join(update, context, gender='Female')
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+    elif message.text == "Find by Gender":
+        if user_type == 'premium':
+            await update.message.reply_text("Please specify the gender: Male or Female.")
+        else:
+            await update.message.reply_text("This feature is available for premium users only.")
+
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -164,14 +185,14 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
 
-async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     user_id = update.message.from_user.id
-    
+
     # Check if user is already in an active chat
     if active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]}):
         await update.message.reply_text("You are already in an active chat. Use /leave to exit the current chat before joining a new one.")
         return
-    
+
     # Check if the user is already waiting
     existing_user = waiting_users_collection.find_one({"user_id": user_id})
     if existing_user:
@@ -179,7 +200,11 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     # Find a partner from waiting_users
-    partner = waiting_users_collection.find_one({"status": "waiting"})
+    query = {"status": "waiting"}
+    if gender:
+        query["gender"] = gender
+
+    partner = waiting_users_collection.find_one(query)
     if partner:
         partner_id = partner['user_id']
         # Create a new chat
@@ -201,15 +226,18 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
         await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
         
-            
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
         waiting_users_collection.delete_one({"user_id": partner_id})
     else:
         # Add user to waiting_users collection
-        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting"})
+        users_collection.update_one(
+            {'user_id': user_id},
+            {'$set': {'gender': 'Unknown'}}  # Update gender as unknown or set properly if available
+        )
+        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
         await update.message.reply_text("You are now in the waiting queue. You will be matched with a partner soon.")
-
+        
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
     
