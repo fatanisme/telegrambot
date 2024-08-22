@@ -160,9 +160,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat. Please use /join to find a new partner.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Please use /join to find a new partner.")
     
-    # Remove user from waiting_users collection
-    waiting_users_collection.delete_one({"user_id": user_id})
-    waiting_users_collection.delete_one({"user_id": partner_id})
     
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
@@ -204,7 +201,9 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
         await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
         
-        # Remove the matched partner from waiting_users
+            
+        # Remove user from waiting_users collection
+        waiting_users_collection.delete_one({"user_id": user_id})
         waiting_users_collection.delete_one({"user_id": partner_id})
     else:
         # Add user to waiting_users collection
