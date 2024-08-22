@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
@@ -187,7 +187,7 @@ def main():
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_settings_input))
-    application.add_handler(ChatMemberHandler(handle_chat_member_update))
+    application.add_handler(MessageHandler(filters.ALL, handle_chat_member_update))  # Handle chat member updates
 
     application.run_polling()
 
