@@ -173,6 +173,11 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Waiting for a partner. Please wait...")
 
+async def handle_chat_member_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_member = update.chat_member
+    if chat_member.new_chat_member.status == 'left_chat_member':
+        await handle_user_left(update, context)
+
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
 
@@ -182,8 +187,7 @@ def main():
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_settings_input))
-    application.add_handler(MessageHandler(filters.LEFT_CHAT_MEMBER, handle_user_left))
-    application.add_handler(CallbackQueryHandler(handle_callback))
+    application.add_handler(ChatMemberHandler(handle_chat_member_update))
 
     application.run_polling()
 
