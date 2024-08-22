@@ -94,18 +94,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
-    # Check if the user is in an active chat
     if not chat:
         await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
         return
     
-    # Determine the partner ID
-    if chat['user_id'] == user_id:
-        partner_id = chat['partner_id']
-    else:
-        partner_id = chat['user_id']
+    partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
     
-    # Handle different types of messages
     message = update.message
     if message.text:
         await context.bot.send_message(chat_id=partner_id, text=message.text)
@@ -120,7 +114,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif message.document:
         await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
     elif message.photo:
-        await context.bot.send_photo(chat_id=partner_id, photo=message.photo.file_id)
+        # Handle photo which might be a tuple of sizes
+        photo_file_id = message.photo[-1].file_id  # Get the highest resolution photo
+        await context.bot.send_photo(chat_id=partner_id, photo=photo_file_id)
     elif message.forward_from:
         await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
     else:
