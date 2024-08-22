@@ -168,46 +168,38 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    user = waiting_users_collection.find_one({"user_id": user_id})
     
-    # Check if user is already in an active chat
-    if active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]}):
-        await update.message.reply_text("You are already in an active chat. Use /leave to exit the current chat before joining a new one.")
+    if not user:
+        # User not in waiting queue
+        await update.message.reply_text("You are not in the waiting queue.")
         return
     
-    # Check if the user is already waiting
-    existing_user = waiting_users_collection.find_one({"user_id": user_id})
-    if existing_user:
-        await update.message.reply_text("You are already waiting for a partner.")
+    # Find a partner from waiting_users who is not the same as the user
+    partner = waiting_users_collection.find_one({"user_id": {"$ne": user_id}})
+    
+    if not partner:
+        # No available partners
+        await update.message.reply_text("No available partners at the moment. Please wait.")
         return
     
-    # Find a partner from waiting_users
-    partner = waiting_users_collection.find_one({"status": "waiting"})
-    if partner:
-        partner_id = partner['user_id']
-        # Create a new chat
-        chatroom_id = str(user_id) + str(partner_id)
-        active_chats_collection.insert_one({
-            "user_id": user_id,
-            "partner_id": partner_id,
-            "chatroom_id": chatroom_id,
-            "messages": []
-        })
-        active_chats_collection.insert_one({
-            "user_id": partner_id,
-            "partner_id": user_id,
-            "chatroom_id": chatroom_id,
-            "messages": []
-        })
-        
-        # Notify both users
-        await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
-        await context.bot.send_message(chat_id=partner_id, text=f"You have been matched with a new partner. Start chatting!")
-        
-        waiting_users_collection.delete_many({"user_id": {"$in": [user_id, partner_id]}})
-    else:
-        # Add user to waiting_users collection
-        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting"})
-        await update.message.reply_text("You are now in the waiting queue. You will be matched with a partner soon.")
+    partner_id = partner['user_id']
+    
+    # Create a new chat and update both users' status
+    chatroom_id = f"{user_id}{partner_id}{int(time.time())}"
+    active_chats_collection.insert_one({
+        "user_id": user_id,
+        "partner_id": partner_id,
+        "chatroom_id": chatroom_id,
+        "messages": []
+    })
+    
+    # Notify both users of the new chat
+    await context.bot.send_message(chat_id=user_id, text="You have been matched with a partner! Start chatting.")
+    await context.bot.send_message(chat_id=partner_id, text="You have been matched with a partner! Start chatting.")
+    
+    # Remove both users from waiting_users
+    waiting_users_collection.delete_many({"user_id": {"$in": [user_id, partner_id]}})
 
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
