@@ -216,16 +216,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     await keyboard_markup(update,context)
-    await context.bot.send_message(
-        chat_id=partner_id,
-        reply_markup=ReplyKeyboardMarkup(
-            [[KeyboardButton("Find a Partner"), KeyboardButton("Find by Gender")]],
-            resize_keyboard=True,
-            one_time_keyboard=True
-        )
-    )
-
-    
     
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
@@ -282,6 +272,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
             {'$set': {'gender': 'Unknown'}}  # Update gender as unknown or set properly if available
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
+        await remove_reply_keyboard_from_message(update, context)
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
