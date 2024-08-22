@@ -120,6 +120,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = users_collection.find_one({'user_id': user_id})
     user_type = user.get('user_type') if user else None
     
+    message = update.message
+    
+    
     if message.text == "Find a Partner":
         await join(update, context)
     elif message.text == "Find a Male":
@@ -144,7 +147,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
     
-    message = update.message
     if message.text:
         await context.bot.send_message(chat_id=partner_id, text=message.text)
     elif message.sticker:
