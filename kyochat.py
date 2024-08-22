@@ -122,50 +122,50 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     message = update.message
     
-    
-    if message.text == "Find a Partner":
-        await join(update, context)
-    elif message.text == "Find a Male":
-        if user_type == 'premium':
-            await join(update, context, gender='Male')
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-    elif message.text == "Find a Female":
-        if user_type == 'premium':
-            await join(update, context, gender='Female')
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-    elif message.text == "Find by Gender":
-        if user_type == 'premium':
-            await update.message.reply_text("Please specify the gender: Male or Female.")
-        else:
-            await update.message.reply_text("This feature is available for premium users only.")
-    elif not chat:
-        await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
-        return
-    
-    partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
-    
-    if message.text:
-        await context.bot.send_message(chat_id=partner_id, text=message.text)
-    elif message.sticker:
-        await context.bot.send_sticker(chat_id=partner_id, sticker=message.sticker.file_id)
-    elif message.animation:
-        await context.bot.send_animation(chat_id=partner_id, animation=message.animation.file_id)
-    elif message.voice:
-        await context.bot.send_voice(chat_id=partner_id, voice=message.voice.file_id)
-    elif message.video:
-        await context.bot.send_video(chat_id=partner_id, video=message.video.file_id)
-    elif message.document:
-        await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
-    elif message.photo:
-        # Handle photo which might be a tuple of sizes
-        photo_file_id = message.photo[-1].file_id  # Get the highest resolution photo
-        await context.bot.send_photo(chat_id=partner_id, photo=photo_file_id)
-    elif message.forward_from:
-        await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
+    if chat is none:
+        if message.text == "Find a Partner":
+            await join(update, context)
+        elif message.text == "Find a Male":
+            if user_type == 'premium':
+                await join(update, context, gender='Male')
+            else:
+                await update.message.reply_text("This feature is available for premium users only.")
+        elif message.text == "Find a Female":
+            if user_type == 'premium':
+                await join(update, context, gender='Female')
+            else:
+                await update.message.reply_text("This feature is available for premium users only.")
+        elif message.text == "Find by Gender":
+            if user_type == 'premium':
+                await update.message.reply_text("Please specify the gender: Male or Female.")
+            else:
+                await update.message.reply_text("This feature is available for premium users only.")
+        elif not chat:
+            await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
+            return
     else:
-        pass
+        partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
+        
+        if message.text:
+            await context.bot.send_message(chat_id=partner_id, text=message.text)
+        elif message.sticker:
+            await context.bot.send_sticker(chat_id=partner_id, sticker=message.sticker.file_id)
+        elif message.animation:
+            await context.bot.send_animation(chat_id=partner_id, animation=message.animation.file_id)
+        elif message.voice:
+            await context.bot.send_voice(chat_id=partner_id, voice=message.voice.file_id)
+        elif message.video:
+            await context.bot.send_video(chat_id=partner_id, video=message.video.file_id)
+        elif message.document:
+            await context.bot.send_document(chat_id=partner_id, document=message.document.file_id)
+        elif message.photo:
+            # Handle photo which might be a tuple of sizes
+            photo_file_id = message.photo[-1].file_id  # Get the highest resolution photo
+            await context.bot.send_photo(chat_id=partner_id, photo=photo_file_id)
+        elif message.forward_from:
+            await context.bot.forward_message(chat_id=partner_id, from_chat_id=update.message.chat_id, message_id=update.message.message_id)
+        else:
+            pass
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
