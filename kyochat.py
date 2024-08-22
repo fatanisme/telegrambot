@@ -13,18 +13,22 @@ waiting_users_collection = db['waiting_users']
 # Define command handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_id = user.id
     
     users_collection.update_one(
         {'user_id': user.id},
         {'$set': {'user_id': user.id, 'username': user.username, 'first_name': user.first_name, 'last_name': user.last_name}},
         upsert=True
     )
+    await update.message.reply_text("Welcome! Use /settings to set your preferences.")
+
+async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user_id = update.message.from_user.id
     
     # Fetch user type from the database
-    users = users_collection.find_one({'user_id': user_id})
+    user = users_collection.find_one({'user_id': user_id})
     
-    if users and users.get('user_type') == 'premium':
+    if user and user.get('user_type') == 'premium':
         keyboard = [
             [KeyboardButton("Find a Partner")],
             [KeyboardButton("Find a Male"), KeyboardButton("Find a Female")]
@@ -35,9 +39,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("Find by Gender")]
         ]
     
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text( reply_markup=reply_markup)
-    
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
