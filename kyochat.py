@@ -74,14 +74,17 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Select your gender:", reply_markup=reply_markup)
     elif query.data == 'age':
+        user_settings[user_id] = 'waiting_for_age'
         await query.edit_message_text(text="Please enter your age (1-99):")
         context.user_data['age'] = True
         return
     elif query.data == 'city':
+        user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text(text="Please enter your city:")
         context.user_data['city'] = True
         return
     elif query.data == 'language':
+        user_settings[user_id] = 'waiting_for_language'
         keyboard = [
             [InlineKeyboardButton("English", callback_data='language_english')],
             [InlineKeyboardButton("Indonesian", callback_data='language_indonesian')],
