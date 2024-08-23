@@ -169,7 +169,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     {'$set': {'age': int(message.text)}}
                 )
                 await update.message.reply_text("Age updated successfully!")
-                del user_settings.get(user_id)  # Remove the setting once handled
             else:
                 await update.message.reply_text("Please enter a valid age between 1 and 99.")
         elif user_settings.get(user_id) == 'waiting_for_city':
@@ -178,7 +177,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {'$set': {'city': message.text}}
             )
             await update.message.reply_text("City updated successfully!")
-            del user_settings.get(user_id)  # Remove the setting once handled
         elif not chat:
             await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
             return
