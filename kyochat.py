@@ -92,6 +92,8 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text("Select your language:", reply_markup=reply_markup)
     elif query.data == 'close':
         await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
+    elif query.data == 'back':
+        await settings(update, context)
     elif query.data == 'gender_male' or query.data == 'gender_female':
             gender = 'Male' if query.data == 'gender_male' else 'Female'
             users_collection.update_one(
@@ -106,8 +108,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
                 {'$set': {'language': language}}
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
-    elif query.data == 'back':
-        await settings(update, context)
+    
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
     
