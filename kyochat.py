@@ -400,6 +400,7 @@ def main():
     
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
+    application.add_handler(CallbackQueryHandler(handle_report))
     
     # Message handlers
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
