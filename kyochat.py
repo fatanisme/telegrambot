@@ -172,7 +172,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             'violence': 'Violence',
             'vulgar_partner': 'Vulgar Partner'
         }[query.data]
-        await update_report(user_id, report_type, context)
+        await update_report(update, report_type, context)
     elif query.data == 'report_back':
         keyboard_markup = [
         [InlineKeyboardButton("👍", callback_data='like'),InlineKeyboardButton("👎", callback_data='dislike')],
