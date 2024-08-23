@@ -226,10 +226,10 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Send keyboard markup to the partner
     keyboard = [
-        [InlineKeyboardButton("Find a Partner", callback_data='find_partner')],
-        [InlineKeyboardButton("Find a Male", callback_data='find_male'), InlineKeyboardButton("Find a Female", callback_data='find_female')]
+            [KeyboardButton("🔍 Find a Partner 🔍")],
+            [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = ReplyKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
     
 
