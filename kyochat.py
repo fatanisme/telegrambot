@@ -224,14 +224,24 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     await keyboard_markup(update,context) 
     
-    # Send keyboard markup to the partner
-    keyboard = [
+    user = users_collection.find_one({'user_id': user_id})
+    
+    if user and user.get('user_type') == 'premium':
+        # Send keyboard markup to the partner
+        keyboard = [
             [KeyboardButton("🔍 Find a Partner 🔍")],
             [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(keyboard)
-    await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
-    
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
+    else:
+        # Send keyboard markup to the partner
+        keyboard = [
+            [KeyboardButton("🔍 Find a Partner 🔍")],
+            [KeyboardButton("👨👩 Find by Gender 👨👩")]
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
 
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
