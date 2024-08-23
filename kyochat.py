@@ -162,23 +162,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Please specify the gender: Male or Female.")
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
-        elif user_settings[user_id] == 'waiting_for_age':
+        elif user_settings.get(user_id) == 'waiting_for_age':
             if message.text.isdigit() and 1 <= int(message.text) <= 99:
                 users_collection.update_one(
                     {'user_id': user_id},
                     {'$set': {'age': int(message.text)}}
                 )
                 await update.message.reply_text("Age updated successfully!")
-                del user_settings[user_id]  # Remove the setting once handled
+                del user_settings.get(user_id)  # Remove the setting once handled
             else:
                 await update.message.reply_text("Please enter a valid age between 1 and 99.")
-        elif user_settings[user_id] == 'waiting_for_city':
+        elif user_settings.get(user_id) == 'waiting_for_city':
             users_collection.update_one(
                 {'user_id': user_id},
                 {'$set': {'city': message.text}}
             )
             await update.message.reply_text("City updated successfully!")
-            del user_settings[user_id]  # Remove the setting once handled
+            del user_settings.get(user_id)  # Remove the setting once handled
         elif not chat:
             await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
             return
