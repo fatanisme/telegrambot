@@ -245,8 +245,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Create inline keyboard with "Like", "Dislike", and "Report" buttons
     keyboard_report = [
-        [InlineKeyboardButton("Like", callback_data='like')],
-        [InlineKeyboardButton("Dislike", callback_data='dislike')],
+        [InlineKeyboardButton("Like", callback_data='like'),InlineKeyboardButton("Dislike", callback_data='dislike')],
         [InlineKeyboardButton("Report", callback_data='report')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard_report)
