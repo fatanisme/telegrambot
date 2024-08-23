@@ -49,16 +49,16 @@ async def remove_reply_keyboard_from_message(update: Update, context: ContextTyp
         )
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message if update.message else update.callback_query.message
     
     keyboard = [
         [InlineKeyboardButton("Gender", callback_data='gender')],
         [InlineKeyboardButton("Age", callback_data='age')],
         [InlineKeyboardButton("City", callback_data='city')],
         [InlineKeyboardButton("Language", callback_data='language')],
+        [InlineKeyboardButton("Close", callback_data='close')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await message.reply_text("Choose an option:", reply_markup=reply_markup)
+    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
 
 async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -76,12 +76,10 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
     elif query.data == 'age':
         user_settings[user_id] = 'waiting_for_age'
         await query.edit_message_text(text="Please enter your age (1-99):")
-        context.user_data['age'] = True
         return
     elif query.data == 'city':
         user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text(text="Please enter your city:")
-        context.user_data['city'] = True
         return
     elif query.data == 'language':
         user_settings[user_id] = 'waiting_for_language'
@@ -99,32 +97,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
     elif query.data == 'back':
         await settings(update, context)
 
-async def handle_settings_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.message.from_user
-    if 'age' in context.user_data:
-        age = update.message.text
-        if age.isdigit() and 1 <= int(age) <= 99:
-            users_collection.update_one(
-                {'user_id': user.id},
-                {'$set': {'age': int(age)}}
-            )
-            await update.message.reply_text("Age updated successfully!")
-        else:
-            await update.message.reply_text("Please enter a valid age between 1 and 99.")
-        del context.user_data['age']
-    elif 'city' in context.user_data:
-        city = update.message.text
-        users_collection.update_one(
-            {'user_id': user.id},
-            {'$set': {'city': city}}
-        )
-        await update.message.reply_text("City updated successfully!")
-        del context.user_data['city']
-    else:
-        await update.message.reply_text("Invalid input. Please use /settings to update your preferences.")
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     user = users_collection.find_one({'user_id': user_id})
@@ -151,25 +124,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Please specify the gender: Male or Female.")
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
-        elif user_id in user_settings:
-            if user_settings[user_id] == 'waiting_for_gender':
-                if query.data == 'gender_male' or query.data == 'gender_female':
-                    print("Gender callback received")  # Tambahkan debug print
-                    users_collection.update_one(
-                        {'user_id': query.from_user.id},
-                        {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
-                    )
-                    await query.edit_message_text(text="Gender updated successfully!")
-            elif user_settings[user_id] == 'waiting_for_language':            
-                if query.data.startswith('language_'):
-                    language = query.data.split('_')[1]
-                    users_collection.update_one(
-                        {'user_id': query.from_user.id},
-                        {'$set': {'language': language}}
-                    )
-                    await query.edit_message_text(text=f"Language set to {language.capitalize()}!")
-            elif query.data == 'back':
-                await settings(update, context)
         elif not chat:
             await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
             return
