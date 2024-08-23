@@ -133,7 +133,54 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
             del user_settings[user_id]
+    if query.data == 'like':
+        # Increment like count in user collection
+        users_collection.update_one(
+            {'user_id': user_id},
+            {'$inc': {'likes': 1}}
+        )
+        await query.answer("You liked the partner.")
     
+    elif query.data == 'dislike':
+        # Increment dislike count in user collection
+        users_collection.update_one(
+            {'user_id': user_id},
+            {'$inc': {'dislikes': 1}}
+        )
+        await query.answer("You disliked the partner.")
+    elif query.data == 'report':
+        keyboard = [
+            [InlineKeyboardButton("Advertising", callback_data='advertising')],
+            [InlineKeyboardButton("Selling", callback_data='selling')]
+            [InlineKeyboardButton("Child Porn", callback_data='child_porn')]
+            [InlineKeyboardButton("Begging", callback_data='begging')]
+            [InlineKeyboardButton("Insulting", callback_data='insulting')]
+            [InlineKeyboardButton("Violence", callback_data='violence')]
+            [InlineKeyboardButton("Vulgar Partner", callback_data='vulgar_partner')]
+            [InlineKeyboardButton("Back", callback_data='report_back')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text("If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
+        
+    elif query.data in ['advertising', 'selling', 'child_porn', 'begging', 'insulting', 'violence', 'vulgar_partner']:
+        report_type = {
+            'advertising': 'Advertising',
+            'selling': 'Selling',
+            'child_porn': 'Child Porn',
+            'begging': 'Begging',
+            'insulting': 'Insulting',
+            'violence': 'Violence',
+            'vulgar_partner': 'Vulgar Partner'
+        }[query.data]
+        await update_report(user_id, report_type, context)
+    elif query.data == 'report_back':
+        keyboard_markup = [
+        [InlineKeyboardButton("👍", callback_data='like'),InlineKeyboardButton("👎", callback_data='dislike')],
+        [InlineKeyboardButton(" ⚠️⚠️ Report ⚠️⚠️", callback_data='report')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard_markup)
+        await query.edit_message_text("Your partner has left the chat. You can now:", reply_markup=reply_markup)
+        
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
     
@@ -257,59 +304,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
-
-async def handle_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
     
-    if query.data == 'like':
-        # Increment like count in user collection
-        users_collection.update_one(
-            {'user_id': user_id},
-            {'$inc': {'likes': 1}}
-        )
-        await query.answer("You liked the partner.")
-    
-    elif query.data == 'dislike':
-        # Increment dislike count in user collection
-        users_collection.update_one(
-            {'user_id': user_id},
-            {'$inc': {'dislikes': 1}}
-        )
-        await query.answer("You disliked the partner.")
-    elif query.data == 'report':
-        keyboard = [
-            [InlineKeyboardButton("Advertising", callback_data='advertising')],
-            [InlineKeyboardButton("Selling", callback_data='selling')]
-            [InlineKeyboardButton("Child Porn", callback_data='child_porn')]
-            [InlineKeyboardButton("Begging", callback_data='begging')]
-            [InlineKeyboardButton("Insulting", callback_data='insulting')]
-            [InlineKeyboardButton("Violence", callback_data='violence')]
-            [InlineKeyboardButton("Vulgar Partner", callback_data='vulgar_partner')]
-            [InlineKeyboardButton("Back", callback_data='report_back')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
-        
-    elif query.data in ['advertising', 'selling', 'child_porn', 'begging', 'insulting', 'violence', 'vulgar_partner']:
-        report_type = {
-            'advertising': 'Advertising',
-            'selling': 'Selling',
-            'child_porn': 'Child Porn',
-            'begging': 'Begging',
-            'insulting': 'Insulting',
-            'violence': 'Violence',
-            'vulgar_partner': 'Vulgar Partner'
-        }[query.data]
-        await update_report(user_id, report_type, context)
-    elif query.data == 'report_back':
-        keyboard_markup = [
-        [InlineKeyboardButton("👍", callback_data='like'),InlineKeyboardButton("👎", callback_data='dislike')],
-        [InlineKeyboardButton(" ⚠️⚠️ Report ⚠️⚠️", callback_data='report')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard_markup)
-        await query.edit_message_text("Your partner has left the chat. You can now:", reply_markup=reply_markup)
-        
 async def update_report(user_id: int, report_type: str, context: ContextTypes.DEFAULT_TYPE):
     # Update the report count and detail
     users_collection.update_one(
@@ -400,7 +395,6 @@ def main():
     
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
-    application.add_handler(CallbackQueryHandler(handle_report))
     
     # Message handlers
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
