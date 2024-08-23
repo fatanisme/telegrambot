@@ -225,6 +225,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
+    waiting_users_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     user_id = update.message.from_user.id
