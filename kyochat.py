@@ -254,7 +254,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
@@ -338,7 +337,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     # Check if the user is already waiting
     existing_user = waiting_users_collection.find_one({"user_id": user_id})
     if existing_user:
-        waiting_users_collection.delete_one({"user_id": user_id})
         await update.message.reply_text("You are already waiting for a partner.")
         return
     
