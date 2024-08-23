@@ -232,7 +232,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("🔍 Find a Partner 🔍")],
             [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
         ]
-        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
         await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
     else:
         # Send keyboard markup to the partner
@@ -240,7 +240,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("🔍 Find a Partner 🔍")],
             [KeyboardButton("👨👩 Find by Gender 👨👩")]
         ]
-        reply_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
         await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
 
     # Remove the user from active_chats
