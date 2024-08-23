@@ -299,7 +299,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender, 'language': user_language})
         await update.message.reply_text(
             "You have been added to the waiting list. Please wait while we find a partner for you.",
-            reply_markup=remove_reply_keyboard_from_message(update, context)
+            reply_markup= await remove_reply_keyboard_from_message(update, context)
         )
         
 def main():
