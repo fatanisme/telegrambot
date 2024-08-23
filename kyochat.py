@@ -50,13 +50,13 @@ async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if user and user.get('user_type') == 'premium':
         keyboard = [
-            [KeyboardButton("Find a Partner")],
-            [KeyboardButton("Find a Male"), KeyboardButton("Find a Female")]
+            [KeyboardButton("🔍 Find a Partner 🔍")],
+            [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
         ]
     else:
         keyboard = [
-            [KeyboardButton("Find a Partner")],
-            [KeyboardButton("Find by Gender")]
+            [KeyboardButton("🔍 Find a Partner 🔍")],
+            [KeyboardButton("👨👩 Find by Gender 👨👩")]
         ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await update.message.reply_text("Use /join to find a new partner.",reply_markup=reply_markup)
@@ -72,11 +72,11 @@ async def remove_reply_keyboard_from_message(update: Update, context: ContextTyp
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message if update.message else update.callback_query.message
     keyboard = [
-        [InlineKeyboardButton("Gender", callback_data='gender')],
-        [InlineKeyboardButton("Age", callback_data='age')],
-        [InlineKeyboardButton("City", callback_data='city')],
-        [InlineKeyboardButton("Language", callback_data='language')],
-        [InlineKeyboardButton("Close", callback_data='close')],
+        [InlineKeyboardButton("👤 Gender", callback_data='gender')],
+        [InlineKeyboardButton("🎂 Age", callback_data='age')],
+        [InlineKeyboardButton("🏙️ City", callback_data='city')],
+        [InlineKeyboardButton("🌐 Language", callback_data='language')],
+        [InlineKeyboardButton("❌ Close", callback_data='close')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await message.reply_text("Choose an option:", reply_markup=reply_markup)
@@ -144,20 +144,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     
     if chat is None:
-        if message.text == "Find a Partner":
+        if message.text == "🔍 Find a Partner 🔍":
             await join(update, context)
             
-        elif message.text == "Find a Male":
+        elif message.text == "👨 Find a Male 👨":
             if user_type == 'premium':
                 await join(update, context, gender='Male')
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
-        elif message.text == "Find a Female":
+        elif message.text ==  "👩 Find a Female 👩":
             if user_type == 'premium':
                 await join(update, context, gender='Female')
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
-        elif message.text == "Find by Gender":
+        elif message.text == "👨👩 Find by Gender 👨👩":
             if user_type == 'premium':
                 await update.message.reply_text("Please specify the gender: Male or Female.")
             else:
