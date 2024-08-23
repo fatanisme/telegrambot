@@ -338,7 +338,6 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     existing_user = waiting_users_collection.find_one({"user_id": user_id})
     if existing_user:
         waiting_users_collection.delete_one({"user_id": user_id})
-        await update.message.reply_text("You are already waiting for a partner.")
         return
     
     # Find a partner from waiting_users
