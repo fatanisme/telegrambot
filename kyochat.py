@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
+from datetime import datetime, timedelta
 
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
@@ -9,6 +10,7 @@ db = client['kyochat_db']
 users_collection = db['users']
 active_chats_collection = db['active_chats']
 waiting_users_collection = db['waiting_users']
+match_history_collection = db['match_history']
 
 user_settings = {}
 
@@ -21,7 +23,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
     await keyboard_markup(update,context)
-    
+
+# Fungsi untuk menambahkan riwayat pasangan
+def add_to_match_history(user_id, partner_id):
+    timestamp = datetime.now()
+    match_history_collection.insert_one({
+        "user_id": user_id,
+        "partner_id": partner_id,
+        "timestamp": timestamp
+    })
+
+# Fungsi untuk memeriksa apakah pasangan pernah berpasangan dalam 1 menit terakhir
+def is_recent_match(user_id, partner_id):
+    one_minute_ago = datetime.now() - timedelta(minutes=1)
+    return match_history_collection.find_one({
+        "$or": [
+            {"user_id": user_id, "partner_id": partner_id, "timestamp": {"$gte": one_minute_ago}},
+            {"user_id": partner_id, "partner_id": user_id, "timestamp": {"$gte": one_minute_ago}}
+        ]
+    }) is not None
+
 async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     # Fetch user type from the database
@@ -209,7 +230,11 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     user_id = update.message.from_user.id
-
+    # Ambil data pengguna dari database
+    user_data = users_collection.find_one({'user_id': user_id})
+    # Tentukan bahasa pengguna atau set ke English jika belum ada
+    user_language = user_data.get('language', 'English')
+    
     # Check if user is already in an active chat
     if active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]}):
         await update.message.reply_text("You are already in an active chat. Use /leave to exit the current chat before joining a new one.")
@@ -222,11 +247,17 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         return
     
     # Find a partner from waiting_users
-    query = {"status": "waiting"}
+    query = {"status": "waiting", "language": user_language}
     if gender:
         query["gender"] = gender
 
-    partner = waiting_users_collection.find_one(query)
+    partner = None
+    # Cari pasangan yang tidak pernah berpasangan dalam 1 menit terakhir
+    for potential_partner in waiting_users_collection.find(query):
+        if not is_recent_match(user_id, potential_partner['user_id']):
+            partner = potential_partner
+            break
+        
     if partner:
         partner_id = partner['user_id']
         # Create a new chat
@@ -244,6 +275,9 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
             "messages": []
         })
         
+        # Tambahkan ke riwayat pasangan
+        add_to_match_history(user_id, partner_id)
+        
         # Notify both users
         await remove_reply_keyboard_from_message(update, context)
         await context.bot.send_message(chat_id=user_id, text=f"You have been matched with a new partner. Start chatting!")
@@ -256,10 +290,13 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         # Add user to waiting_users collection
         users_collection.update_one(
             {'user_id': user_id},
-            {'$set': {'gender': 'Unknown'}}  # Update gender as unknown or set properly if available
+            {'$set': {'gender': 'Unknown', 'language': user_language}}  # Update gender as unknown or set properly if available
         )
-        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender})
-        await remove_reply_keyboard_from_message(update, context)
+        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender, 'language': user_language})
+        await update.message.reply_text(
+            "You have been added to the waiting list. Please wait while we find a partner for you.",
+            reply_markup=remove_reply_keyboard_from_message(update, context)
+        )
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
