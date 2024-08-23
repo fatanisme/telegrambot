@@ -151,7 +151,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Please specify the gender: Male or Female.")
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
-        elif user.id in user_settings:
+        elif user_id in user_settings:
             if query.data == 'gender_male' or query.data == 'gender_female':
                 print("Gender callback received")  # Tambahkan debug print
                 users_collection.update_one(
