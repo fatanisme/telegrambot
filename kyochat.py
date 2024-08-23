@@ -93,7 +93,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
     elif query.data == 'close':
-        await query.edit_message_text('Closing settings...')
+        await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
         
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
