@@ -99,7 +99,8 @@ async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     user_id = query.from_user.id
     
-    if query.data == 'gender_male' or query.data == 'gender_female':
+    if user_settings[user_id] == 'waiting_for_gender':
+        if query.data == 'gender_male' or query.data == 'gender_female':
             print("Gender callback received")  # Tambahkan debug print
             users_collection.update_one(
                 {'user_id': query.from_user.id},
