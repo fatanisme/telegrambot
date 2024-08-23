@@ -152,7 +152,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif user_id in user_settings:
-            if user_settings[user.id] == 'waiting_for_gender':
+            if user_settings[user_id] == 'waiting_for_gender':
                 if query.data == 'gender_male' or query.data == 'gender_female':
                     print("Gender callback received")  # Tambahkan debug print
                     users_collection.update_one(
@@ -160,7 +160,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
                     )
                     await query.edit_message_text(text="Gender updated successfully!")
-            elif user_settings[user.id] == 'waiting_for_language':            
+            elif user_settings[user_id] == 'waiting_for_language':            
                 if query.data.startswith('language_'):
                     language = query.data.split('_')[1]
                     users_collection.update_one(
