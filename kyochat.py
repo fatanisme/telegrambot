@@ -94,7 +94,19 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
     elif query.data == 'close':
         await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
-        
+
+async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    if query.data == 'gender_male' or query.data == 'gender_female':
+            print("Gender callback received")  # Tambahkan debug print
+            users_collection.update_one(
+                {'user_id': query.from_user.id},
+                {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
+            )
+            await query.edit_message_text(text="Gender updated successfully!")
+    
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
@@ -237,6 +249,7 @@ def main():
     
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
+    application.add_handler(CallbackQueryHandler(handle_message_callback))
     
     # Message handlers
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
