@@ -181,7 +181,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    print(f"Received callback data: {query.data}")  # Tambahkan debug print
+
     if query.data == 'gender_male' or query.data == 'gender_female':
+        print("Gender callback received")  # Tambahkan debug print
         users_collection.update_one(
             {'user_id': query.from_user.id},
             {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
