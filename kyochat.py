@@ -66,8 +66,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
-
+    
     if query.data == 'gender':
         keyboard = [
             [InlineKeyboardButton("Male", callback_data='gender_male')],
@@ -179,7 +178,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
 
     print(f"Received callback data: {query.data}")  # Tambahkan debug print
 
