@@ -107,7 +107,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
     elif query.data == 'back':
-        return
+        await settings(update, context)
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
     
