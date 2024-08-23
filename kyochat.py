@@ -242,7 +242,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
     
     # Send the inline keyboard to the partner
-    await context.bot.send_message(chat_id=partner_id, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=partner_id,  reply_markup=reply_markup)
     
     # Create inline keyboard with "Like", "Dislike", and "Report" buttons
     keyboard_report = [
@@ -253,7 +253,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard_report)
     
     # Send the inline keyboard to the partner
-    await context.bot.send_message(chat_id=partner_id, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=partner_id,text="If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
     await context.bot.send_message(chat_id=user_id, reply_markup=reply_markup)
     
     # Remove the user from active_chats
