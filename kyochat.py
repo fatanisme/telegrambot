@@ -99,7 +99,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
                 {'$set': {'gender': gender}}
             )
             await query.edit_message_text("Gender updated successfully!")
-            del user_settings[user_id]  # Remove the setting status after update
     elif query.data.startswith('language_'):
             language = query.data.split('_')[1]
             users_collection.update_one(
@@ -107,7 +106,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
                 {'$set': {'language': language}}
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
-            del user_settings[user_id]  # Remove the setting status after update
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
     
