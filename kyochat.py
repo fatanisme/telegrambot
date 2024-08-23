@@ -226,7 +226,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {'$set': {'city': message.text}}
             )
             await update.message.reply_text("City updated successfully!")
-        elif not chat:
+        else:
             await update.message.reply_text("You are not in an active chat. Please use /join to find a partner.")
             return
     else:
