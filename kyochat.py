@@ -151,12 +151,12 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
     elif query.data == 'report':
         keyboard = [
             [InlineKeyboardButton("Advertising", callback_data='advertising')],
-            [InlineKeyboardButton("Selling", callback_data='selling')]
-            [InlineKeyboardButton("Child Porn", callback_data='child_porn')]
-            [InlineKeyboardButton("Begging", callback_data='begging')]
-            [InlineKeyboardButton("Insulting", callback_data='insulting')]
-            [InlineKeyboardButton("Violence", callback_data='violence')]
-            [InlineKeyboardButton("Vulgar Partner", callback_data='vulgar_partner')]
+            [InlineKeyboardButton("Selling", callback_data='selling')],
+            [InlineKeyboardButton("Child Porn", callback_data='child_porn')],
+            [InlineKeyboardButton("Begging", callback_data='begging')],
+            [InlineKeyboardButton("Insulting", callback_data='insulting')],
+            [InlineKeyboardButton("Violence", callback_data='violence')],
+            [InlineKeyboardButton("Vulgar Partner", callback_data='vulgar_partner')],
             [InlineKeyboardButton("Back", callback_data='report_back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
