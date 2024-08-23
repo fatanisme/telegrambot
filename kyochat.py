@@ -79,6 +79,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text("Please enter your city:")
     elif query.data == 'language':
+        user_settings[user_id] = 'waiting_for_language'
         keyboard = [
             [InlineKeyboardButton("English", callback_data='language_english')],
             [InlineKeyboardButton("Indonesian", callback_data='language_indonesian')],
@@ -101,13 +102,14 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
                 {'$set': {'gender': gender}}
             )
             await query.edit_message_text("Gender updated successfully!")
-    elif query.data.startswith('language_'):
+    elif user_settings.get(user_id) == 'waiting_for_language':
             language = query.data.split('_')[1]
             users_collection.update_one(
                 {'user_id': user_id},
                 {'$set': {'language': language}}
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
+            del user_settings[user_id]
     
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
