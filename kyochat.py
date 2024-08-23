@@ -59,7 +59,6 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("Age", callback_data='age')],
         [InlineKeyboardButton("City", callback_data='city')],
         [InlineKeyboardButton("Language", callback_data='language')],
-        [InlineKeyboardButton("Back ⬅️", callback_data='back')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await message.reply_text("Choose an option:", reply_markup=reply_markup)
@@ -283,12 +282,13 @@ def main():
     application.add_handler(CommandHandler('leave', leave))
     application.add_handler(CommandHandler('join', join))
     
-    # Message handlers
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     
     # Callback query handlers
     application.add_handler(CallbackQueryHandler(handle_settings_choice))
     application.add_handler(CallbackQueryHandler(handle_callback))
+    
+    # Message handlers
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     
     # Start the bot
     application.run_polling()
