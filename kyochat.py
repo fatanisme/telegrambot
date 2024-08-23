@@ -92,8 +92,9 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
-    elif query.data == 'back':
-        return
+    elif query.data == 'close':
+        await query.edit_message_text('')
+        
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
