@@ -233,7 +233,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.send_message(chat_id=partner_id, text="Use /join to find a new partner.", reply_markup=reply_markup)
     else:
         # Send keyboard markup to the partner
         keyboard = [
@@ -241,7 +240,9 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("👨👩 Find by Gender 👨👩")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.send_message(chat_id=partner_id, text="Use /join to find a new partner.", reply_markup=reply_markup)
+    
+    # Send the inline keyboard to the partner
+    await context.bot.send_message(chat_id=partner_id, text="Your partner has left the chat. You can now:", reply_markup=reply_markup)
     
     # Create inline keyboard with "Like", "Dislike", and "Report" buttons
     keyboard_report = [
