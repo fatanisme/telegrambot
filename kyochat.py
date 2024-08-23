@@ -27,7 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Fungsi untuk menambahkan riwayat pasangan
 
 # Fungsi untuk menambahkan riwayat pasangan
-def add_to_match_history(user_id, partner_id):
+async def add_to_match_history(user_id, partner_id):
     timestamp = datetime.now()
     match_history_collection.insert_one({
         "user_id": user_id,
@@ -371,7 +371,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         })
         
         # Tambahkan ke riwayat pasangan
-        add_to_match_history(user_id, partner_id)
+        await add_to_match_history(user_id, partner_id)
         
         # Notify both users
         await remove_reply_keyboard_from_message(update, context)
