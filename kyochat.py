@@ -89,7 +89,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         keyboard = [
             [InlineKeyboardButton("Male", callback_data='gender_male')],
             [InlineKeyboardButton("Female", callback_data='gender_female')],
-            [InlineKeyboardButton("Back ⬅️", callback_data='back')]
+            [InlineKeyboardButton("⬅️ Back", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Select your gender:", reply_markup=reply_markup)
@@ -108,7 +108,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             [InlineKeyboardButton("Spanish", callback_data='language_spanish')],
             [InlineKeyboardButton("Turkish", callback_data='language_turkish')],
             [InlineKeyboardButton("Korean", callback_data='language_korean')],
-            [InlineKeyboardButton("Back ⬅️", callback_data='back')]
+            [InlineKeyboardButton("⬅️ Back", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Select your language:", reply_markup=reply_markup)
