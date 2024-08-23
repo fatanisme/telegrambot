@@ -94,19 +94,30 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         await query.edit_message_text("Select your language:", reply_markup=reply_markup)
     elif query.data == 'close':
         await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
-
-async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user_id = query.from_user.id
-    
-    if user_settings[user_id] == 'waiting_for_gender':
-        if query.data == 'gender_male' or query.data == 'gender_female':
-            print("Gender callback received")  # Tambahkan debug print
+    elif query.data == 'gender_male' or query.data == 'gender_female':
+        if user_settings.get(user_id) == 'waiting_for_gender':
+            gender = 'Male' if query.data == 'gender_male' else 'Female'
             users_collection.update_one(
-                {'user_id': query.from_user.id},
-                {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
+                {'user_id': user_id},
+                {'$set': {'gender': gender}}
             )
             await query.edit_message_text("Gender updated successfully!")
+            del user_settings[user_id]  # Remove the setting status after update
+        else:
+            await query.edit_message_text("Invalid callback data.")
+    elif query.data.startswith('language_'):
+        if user_settings.get(user_id) == 'waiting_for_language':
+            language = query.data.split('_')[1]
+            users_collection.update_one(
+                {'user_id': user_id},
+                {'$set': {'language': language}}
+            )
+            await query.edit_message_text(f"Language set to {language.capitalize()}!")
+            del user_settings[user_id]  # Remove the setting status after update
+        else:
+            await query.edit_message_text("Invalid callback data.")
+    else:
+        await query.edit_message_text("Invalid callback data or settings state.")
     
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
