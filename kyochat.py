@@ -140,10 +140,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif user_settings[user_id] == 'waiting_for_age':
-            if message.isdigit() and 1 <= int(message) <= 99:
+            if message.text.isdigit() and 1 <= int(message.text) <= 99:
                 users_collection.update_one(
                     {'user_id': user_id},
-                    {'$set': {'age': int(message)}}
+                    {'$set': {'age': int(message.text)}}
                 )
                 await update.message.reply_text("Age updated successfully!")
                 del user_settings[user_id]  # Remove the setting once handled
@@ -152,7 +152,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif user_settings[user_id] == 'waiting_for_city':
             users_collection.update_one(
                 {'user_id': user_id},
-                {'$set': {'city': message}}
+                {'$set': {'city': message.text}}
             )
             await update.message.reply_text("City updated successfully!")
             del user_settings[user_id]  # Remove the setting once handled
