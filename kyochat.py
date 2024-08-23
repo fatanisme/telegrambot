@@ -177,22 +177,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data
+    await query.answer()
 
-    if data == 'gender_male' or data == 'gender_female':
+    if query.data == 'gender_male' or query.data == 'gender_female':
         users_collection.update_one(
             {'user_id': query.from_user.id},
-            {'$set': {'gender': 'Male' if data == 'gender_male' else 'Female'}}
+            {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
         )
         await query.edit_message_text(text="Gender updated successfully!")
-    elif data.startswith('language_'):
-        language = data.split('_')[1]
+    elif query.data.startswith('language_'):
+        language = query.data.split('_')[1]
         users_collection.update_one(
             {'user_id': query.from_user.id},
             {'$set': {'language': language}}
         )
         await query.edit_message_text(text=f"Language set to {language.capitalize()}!")
-    elif data == 'back':
+    elif query.data == 'back':
         await settings(update, context)
 
 async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
