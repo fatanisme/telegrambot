@@ -72,7 +72,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             [InlineKeyboardButton("Back ⬅️", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text="Select your gender:", reply_markup=reply_markup)
+        await query.edit_message_text("Select your gender:", reply_markup=reply_markup)
     elif query.data == 'age':
         user_settings[user_id] = 'waiting_for_age'
         await query.edit_message_text("Please enter your age (1-99):")
@@ -91,7 +91,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             [InlineKeyboardButton("Back ⬅️", callback_data='back')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text="Select your language:", reply_markup=reply_markup)
+        await query.edit_message_text("Select your language:", reply_markup=reply_markup)
     elif query.data == 'close':
         await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
 
@@ -105,7 +105,7 @@ async def handle_message_callback(update: Update, context: ContextTypes.DEFAULT_
                 {'user_id': query.from_user.id},
                 {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
             )
-            await query.edit_message_text(text="Gender updated successfully!")
+            await query.edit_message_text("Gender updated successfully!")
     
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
