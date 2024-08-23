@@ -152,20 +152,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("This feature is available for premium users only.")
         elif user_id in user_settings:
-            if query.data == 'gender_male' or query.data == 'gender_female':
-                print("Gender callback received")  # Tambahkan debug print
-                users_collection.update_one(
-                    {'user_id': query.from_user.id},
-                    {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
-                )
-                await query.edit_message_text(text="Gender updated successfully!")
-            elif query.data.startswith('language_'):
-                language = query.data.split('_')[1]
-                users_collection.update_one(
-                    {'user_id': query.from_user.id},
-                    {'$set': {'language': language}}
-                )
-                await query.edit_message_text(text=f"Language set to {language.capitalize()}!")
+            if user_settings[user.id] == 'waiting_for_gender':
+                if query.data == 'gender_male' or query.data == 'gender_female':
+                    print("Gender callback received")  # Tambahkan debug print
+                    users_collection.update_one(
+                        {'user_id': query.from_user.id},
+                        {'$set': {'gender': 'Male' if query.data == 'gender_male' else 'Female'}}
+                    )
+                    await query.edit_message_text(text="Gender updated successfully!")
+            elif user_settings[user.id] == 'waiting_for_language':            
+                if query.data.startswith('language_'):
+                    language = query.data.split('_')[1]
+                    users_collection.update_one(
+                        {'user_id': query.from_user.id},
+                        {'$set': {'language': language}}
+                    )
+                    await query.edit_message_text(text=f"Language set to {language.capitalize()}!")
             elif query.data == 'back':
                 await settings(update, context)
         elif not chat:
