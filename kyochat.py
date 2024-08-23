@@ -304,7 +304,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
-    waiting_users_collection.delete_one({'user_id': user_id})
+    waiting_users_collection.delete_one({"user_id": user_id})
     
 async def update_report(update: Update, report_type: str, context: ContextTypes.DEFAULT_TYPE):
     # Update the report count and detail
