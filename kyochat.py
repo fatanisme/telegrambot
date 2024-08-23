@@ -254,7 +254,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Send the inline keyboard to the partner
     await context.bot.send_message(chat_id=partner_id,text="If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
-    await context.bot.send_message(chat_id=user_id, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=user_id, text="If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
     
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
