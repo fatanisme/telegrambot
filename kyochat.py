@@ -52,6 +52,8 @@ async def remove_reply_keyboard_from_message(update: Update, context: ContextTyp
         )
 
 async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message if update.message else update.callback_query.message
+    
     keyboard = [
         [InlineKeyboardButton("Gender", callback_data='gender')],
         [InlineKeyboardButton("Age", callback_data='age')],
@@ -60,7 +62,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("Back ⬅️", callback_data='back')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+    await message.reply_text("Choose an option:", reply_markup=reply_markup)
 
 async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
