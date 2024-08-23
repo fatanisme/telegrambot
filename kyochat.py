@@ -221,13 +221,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     
-    await keyboard_markup(update,context)
-    
-    # Tampilkan keyboard kepada partner
-    partner_update = update.copy()
-    partner_update.message.chat_id = partner_id
-    await keyboard_markup(partner_update, context)
-    
+    await keyboard_markup(update,context) 
 
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
