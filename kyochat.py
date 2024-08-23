@@ -291,16 +291,15 @@ async def handle_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
         
-    elif query.data in ['report_spam', 'report_inappropriate', 'report_harassment', 'report_fraud', 'report_hate_speech', 'report_impersonation', 'report_copyright_violation', 'report_other']:
+    elif query.data in ['advertising', 'selling', 'child_porn', 'begging', 'insulting', 'violence', 'vulgar_partner']:
         report_type = {
-            'report_spam': 'Spam',
-            'report_inappropriate': 'Inappropriate Content',
-            'report_harassment': 'Harassment',
-            'report_fraud': 'Fraud',
-            'report_hate_speech': 'Hate Speech',
-            'report_impersonation': 'Impersonation',
-            'report_copyright_violation': 'Copyright Violation',
-            'report_other': 'Other'
+            'advertising': 'Advertising',
+            'selling': 'Selling',
+            'child_porn': 'Child Porn',
+            'begging': 'Begging',
+            'insulting': 'Insulting',
+            'violence': 'Violence',
+            'vulgar_partner': 'Vulgar Partner'
         }[query.data]
         await update_report(user_id, report_type, context)
     elif query.data == 'report_back':
