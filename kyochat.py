@@ -223,10 +223,13 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     
-    # Tampilkan keyboard kepada partner
-    partner_update = update.copy()
-    partner_update.message.chat_id = partner_id
-    await keyboard_markup(partner_update, context)
+    # Send keyboard markup to the partner
+    keyboard_markup = [
+        [InlineKeyboardButton("Find a Partner", callback_data='find_partner')],
+        [InlineKeyboardButton("Find a Male", callback_data='find_male'), InlineKeyboardButton("Find a Female", callback_data='find_female')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard_markup)
+    await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
     
     await keyboard_markup(update,context) 
 
