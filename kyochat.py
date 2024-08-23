@@ -305,16 +305,22 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
-async def update_report(user_id: int, report_type: str, context: ContextTypes.DEFAULT_TYPE):
+async def update_report(update: Update, report_type: str, context: ContextTypes.DEFAULT_TYPE):
     # Update the report count and detail
-    users_collection.update_one(
-        {'user_id': user_id},
-        {
-            '$inc': {'report_count': 1},
-            '$push': {'reports': report_type}
-        }
-    )
-    await context.bot.answer_callback_query(callback_query_id=context.callback_query.id, text=f"You reported the partner as {report_type}.")
+    callback_query = update.callback_query
+    
+    if callback_query:
+        # Answer the callback query
+        await context.bot.answer_callback_query(
+            callback_query_id=callback_query.id,
+            text=f"You reported the partner as {report_type}."
+        )
+    else:
+        # Handle the case where callback_query is not available
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Unable to process your report as {report_type}."
+        )
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     user_id = update.message.from_user.id
     # Ambil data pengguna dari database
