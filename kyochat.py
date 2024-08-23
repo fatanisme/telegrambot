@@ -207,6 +207,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     user_id = update.message.from_user.id
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
@@ -253,10 +254,23 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Send the inline keyboard to the partner
     await context.bot.send_message(chat_id=partner_id,text="If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
     await context.bot.send_message(chat_id=user_id, text="If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
-    
+        
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
 
+async def handle_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    
+    if query.data == 'report':
+        # Create inline keyboard with "Like", "Dislike", and "Report" buttons
+        keyboard_report = [
+            [InlineKeyboardButton("👍", callback_data='like'),InlineKeyboardButton("👎", callback_data='dislike')],
+            [InlineKeyboardButton(" ⚠️⚠️ Report ⚠️⚠️", callback_data='report')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard_report)
+        await query.edit_message_text("If you wish, Give feedback to your Partner for help us find better partners for you in future ! ", reply_markup=reply_markup)
+    
+        
 async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     user_id = update.message.from_user.id
     # Ambil data pengguna dari database
