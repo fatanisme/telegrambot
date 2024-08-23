@@ -259,6 +259,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
     if not chat:
+        waiting_users_collection.delete_one({"user_id": user_id})
         await update.message.reply_text("You are leaving an active chat. Please use /join to find a partner.")
         return
 
@@ -304,7 +305,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
-    waiting_users_collection.delete_one({"user_id": user_id})
+    
     
 async def update_report(update: Update, report_type: str, context: ContextTypes.DEFAULT_TYPE):
     # Update the report count and detail
