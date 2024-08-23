@@ -255,7 +255,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     if gender:
         query["gender"] = gender
     else:
-        query["gender"] = {"$nin": ["male", "female", None,"Unknown"]}
+        query["gender"] = {"$nin": [None,"Unknown"]}
         
     partner = None
     # Cari pasangan yang tidak pernah berpasangan dalam 1 menit terakhir
