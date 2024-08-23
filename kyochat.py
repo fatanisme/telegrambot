@@ -233,7 +233,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("👨 Find a Male 👨"), KeyboardButton("👩 Find a Female 👩")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
+        await context.bot.send_message(chat_id=partner_id, text="Use /join to find a new partner.", reply_markup=reply_markup)
     else:
         # Send keyboard markup to the partner
         keyboard = [
@@ -241,8 +241,20 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [KeyboardButton("👨👩 Find by Gender 👨👩")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.send_message(chat_id=partner_id, text="You can now look for a new partner:", reply_markup=reply_markup)
-
+        await context.bot.send_message(chat_id=partner_id, text="Use /join to find a new partner.", reply_markup=reply_markup)
+    
+    # Create inline keyboard with "Like", "Dislike", and "Report" buttons
+    keyboard_report = [
+        [InlineKeyboardButton("Like", callback_data='like')],
+        [InlineKeyboardButton("Dislike", callback_data='dislike')],
+        [InlineKeyboardButton("Report", callback_data='report')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard_report)
+    
+    # Send the inline keyboard to the partner
+    await context.bot.send_message(chat_id=partner_id, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=user_id, reply_markup=reply_markup)
+    
     # Remove the user from active_chats
     active_chats_collection.delete_many({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
 
