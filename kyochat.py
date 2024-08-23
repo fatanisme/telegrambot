@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKe
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from pymongo import MongoClient
 from bottokens import KYOCHAT_BOT_TOKEN
+from datetime import datetime, timedelta
 
 # MongoDB setup
 client = MongoClient('mongodb://localhost:27017/')
@@ -25,7 +26,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Fungsi untuk menambahkan riwayat pasangan
 
+# Fungsi untuk menambahkan riwayat pasangan
+def add_to_match_history(user_id, partner_id):
+    timestamp = datetime.now()
+    match_history_collection.insert_one({
+        "user_id": user_id,
+        "partner_id": partner_id,
+        "timestamp": timestamp
+    })
 
+# Fungsi untuk memeriksa apakah pasangan pernah berpasangan dalam 1 menit terakhir
+def is_recent_match(user_id, partner_id):
+    one_minute_ago = datetime.now() - timedelta(minutes=1)
+    return match_history_collection.find_one({
+        "$or": [
+            {"user_id": user_id, "partner_id": partner_id, "timestamp": {"$gte": one_minute_ago}},
+            {"user_id": partner_id, "partner_id": user_id, "timestamp": {"$gte": one_minute_ago}}
+        ]
+    }) is not None
+    
 async def keyboard_markup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     # Fetch user type from the database
@@ -204,6 +223,11 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     
+    # Tampilkan keyboard kepada partner
+    partner_update = update.copy()
+    partner_update.message.chat_id = partner_id
+    await keyboard_markup(partner_update, context)
+    
     await keyboard_markup(update,context) 
 
     # Remove the user from active_chats
@@ -236,8 +260,13 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         query["gender"] = gender
     else:
         query["gender"] = {"$nin": ["Unknown","Male","Female"]}
-        
-    partner = waiting_users_collection.find_one(query)
+    
+    partner = None
+    # Cari pasangan yang tidak pernah berpasangan dalam 1 menit terakhir
+    for potential_partner in waiting_users_collection.find(query):
+        if not is_recent_match(user_id, potential_partner['user_id']):
+            partner = potential_partner
+            break
     if partner:
         partner_id = partner['user_id']
         # Create a new chat
@@ -256,6 +285,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         })
         
         # Tambahkan ke riwayat pasangan
+        add_to_match_history(user_id, partner_id)
         
         # Notify both users
         await remove_reply_keyboard_from_message(update, context)
