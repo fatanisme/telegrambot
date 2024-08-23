@@ -381,14 +381,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
         # Remove user from waiting_users collection
         waiting_users_collection.delete_one({"user_id": user_id})
         waiting_users_collection.delete_one({"user_id": partner_id})
-    else:
-        # Add user to waiting_users collection
-        users_collection.update_one(
-            {'user_id': user_id},
-            {'$set': {'gender': 'Unknown', 'language': user_language}}  # Update gender as unknown or set properly if available
-        )
-        waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender, 'language': user_language})
-        await remove_reply_keyboard_from_message(update, context)
+    
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
