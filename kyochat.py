@@ -254,7 +254,9 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     query = {"status": "waiting", "language": user_language}
     if gender:
         query["gender"] = gender
-
+    else:
+        query["gender"] = {"$nin": ["male", "female"]}
+        
     partner = None
     # Cari pasangan yang tidak pernah berpasangan dalam 1 menit terakhir
     for potential_partner in waiting_users_collection.find(query):
