@@ -221,7 +221,6 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Notify both users
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
-    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
     await keyboard_markup(update,context) 
     
     user = users_collection.find_one({'user_id': user_id})
@@ -242,7 +241,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True, one_time_keyboard=True)
     
     # Send the inline keyboard to the partner
-    await context.bot.send_message(chat_id=partner_id,  reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.", reply_markup=reply_markup)
     
     # Create inline keyboard with "Like", "Dislike", and "Report" buttons
     keyboard_report = [
