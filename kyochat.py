@@ -65,7 +65,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
     user_id = query.from_user.id
     
     if query.data == 'gender':
-        user_settings[user_id] = 'waiting_for_gender'
         keyboard = [
             [InlineKeyboardButton("Male", callback_data='gender_male')],
             [InlineKeyboardButton("Female", callback_data='gender_female')],
@@ -80,7 +79,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
         user_settings[user_id] = 'waiting_for_city'
         await query.edit_message_text("Please enter your city:")
     elif query.data == 'language':
-        user_settings[user_id] = 'waiting_for_language'
         keyboard = [
             [InlineKeyboardButton("English", callback_data='language_english')],
             [InlineKeyboardButton("Indonesian", callback_data='language_indonesian')],
@@ -95,7 +93,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
     elif query.data == 'close':
         await query.edit_message_text('Type /settings for change your appearance or Type /join for find a new partner !')
     elif query.data == 'gender_male' or query.data == 'gender_female':
-        if user_settings.get(user_id) == 'waiting_for_gender':
             gender = 'Male' if query.data == 'gender_male' else 'Female'
             users_collection.update_one(
                 {'user_id': user_id},
@@ -103,10 +100,7 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             )
             await query.edit_message_text("Gender updated successfully!")
             del user_settings[user_id]  # Remove the setting status after update
-        else:
-            await query.edit_message_text("Invalid callback data.")
     elif query.data.startswith('language_'):
-        if user_settings.get(user_id) == 'waiting_for_language':
             language = query.data.split('_')[1]
             users_collection.update_one(
                 {'user_id': user_id},
@@ -114,8 +108,6 @@ async def handle_settings_choice(update: Update, context: ContextTypes.DEFAULT_T
             )
             await query.edit_message_text(f"Language set to {language.capitalize()}!")
             del user_settings[user_id]  # Remove the setting status after update
-        else:
-            await query.edit_message_text("Invalid callback data.")
     else:
         await query.edit_message_text("Invalid callback data or settings state.")
     
