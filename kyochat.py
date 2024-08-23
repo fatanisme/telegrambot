@@ -235,7 +235,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
     if gender:
         query["gender"] = gender
     else:
-        query["gender"] = {"$nin": [None,"Unknown","Male","Female"]}
+        query["gender"] = {"$nin": ["Unknown","Male","Female"]}
         
     partner = waiting_users_collection.find_one(query)
     if partner:
@@ -272,10 +272,7 @@ async def join(update: Update, context: ContextTypes.DEFAULT_TYPE, gender=None):
             {'$set': {'gender': 'Unknown', 'language': user_language}}  # Update gender as unknown or set properly if available
         )
         waiting_users_collection.insert_one({"user_id": user_id, "status": "waiting", "gender": gender, 'language': user_language})
-        await update.message.reply_text(
-            "You have been added to the waiting list. Please wait while we find a partner for you.",
-            reply_markup= await remove_reply_keyboard_from_message(update, context)
-        )
+        await remove_reply_keyboard_from_message(update, context)
         
 def main():
     application = Application.builder().token(KYOCHAT_BOT_TOKEN).build()
