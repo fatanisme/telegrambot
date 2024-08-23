@@ -311,7 +311,7 @@ async def update_report(update: Update, report_type: str, context: ContextTypes.
     
     if callback_query:
         # Answer the callback query
-        await context.bot.answer_callback_query(
+        await context.bot.send_message(
             callback_query_id=callback_query.id,
             text=f"You reported the partner as {report_type}."
         )
