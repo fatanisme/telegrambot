@@ -211,7 +211,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not chat:
         await update.message.reply_text("You are not in an active chat.")
         return
-    
+
     partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
     
     # Remove chat from active_chats
@@ -220,7 +220,13 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Notify both users
     await context.bot.send_message(chat_id=user_id, text="You have left the chat.")
     await context.bot.send_message(chat_id=partner_id, text="Your chat partner has left the chat. Use /join to find a new partner.")
+    
     await keyboard_markup(update,context)
+    
+    # Tampilkan keyboard kepada partner
+    partner_update = update.copy()
+    partner_update.message.chat_id = partner_id
+    await keyboard_markup(partner_update, context)
     
 
     # Remove the user from active_chats
