@@ -259,7 +259,7 @@ async def leave(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = active_chats_collection.find_one({"$or": [{"user_id": user_id}, {"partner_id": user_id}]})
     
     if not chat:
-        await update.message.reply_text("You are not in an active chat.")
+        await update.message.reply_text("You are leaving an active chat. Please use /join to find a partner.")
         return
 
     partner_id = chat['partner_id'] if chat['user_id'] == user_id else chat['user_id']
